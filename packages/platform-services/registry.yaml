@@ -1,0 +1,46 @@
+- id: knowledge-standards
+  name: Knowledge & Standards
+  description: RAG Q&A over platform docs, proposals, and standards
+  phase: v1
+  knowledge:
+    sources:
+      - sn-proposals
+      - sn-standards
+      - sn-docs
+  tools:
+    - docs_search
+  views:
+    - techdocs
+
+- id: golden-path-scaffold
+  name: Golden Path — K8s Service
+  description: Scaffold a containerized service for any managed Kubernetes cluster
+  phase: v1
+  knowledge:
+    paths:
+      - proposals/ai-developer-portal
+  tools:
+    - scaffold_service
+  views:
+    - scaffolder
+
+- id: developer-sandbox
+  name: Developer Sandbox
+  description: Self-service sandbox request (GitHub Issue stub for ServiceNow in prod)
+  phase: v2
+  knowledge:
+    paths:
+      - proposals/developer-sandbox-platform
+  tools:
+    - request_sandbox
+  views:
+    - catalog
+
+- id: observability-insight
+  name: Observability Insight
+  description: Service health / SLO read (mock in working model)
+  phase: v1
+  tools:
+    - service_health
+  views:
+    - grafana-embed

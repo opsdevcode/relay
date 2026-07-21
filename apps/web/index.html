@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Platform Assistant</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Platform Assistant</h1>
+      <p class="subtitle">Working model — local-first, cited answers, draft-and-route actions</p>
+    </header>
+    <section id="chat" aria-live="polite"></section>
+    <form id="composer">
+      <textarea id="input" rows="2" placeholder="Ask about platform standards, scaffold a service, request a sandbox…"></textarea>
+      <button type="submit">Send</button>
+    </form>
+    <footer>
+      <span id="status">API: /chat</span>
+    </footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

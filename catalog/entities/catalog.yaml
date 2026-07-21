@@ -1,0 +1,46 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ai-developer-portal
+  title: AI Developer Portal
+  description: Conversational internal developer portal working model
+  annotations:
+    github.com/project-slug: opsdevcode/ai-developer-portal
+  tags:
+    - platform
+    - portal
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: cloudopt
+  title: CloudOpt
+  description: AI-assisted cloud platform for AWS and Kubernetes
+  annotations:
+    github.com/project-slug: opsdevcode/cloudopt
+  tags:
+    - platform
+    - finops
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+spec:
+  type: team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: guest
+spec:
+  memberOf: [platform-team]

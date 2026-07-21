@@ -1,0 +1,21 @@
+sources:
+  - name: sn-proposals
+    path: /knowledge/proposals
+    glob: "**/*.md"
+    visibility: public
+  - name: sn-standards
+    path: /knowledge/standards
+    glob: "**/*.md"
+    visibility: public
+  - name: sn-docs
+    path: /knowledge/docs
+    glob: "**/*.md"
+    visibility: public
+  - name: sn-root
+    path: /knowledge
+    glob: "*.md"
+    visibility: public
+
+chunk:
+  size: 1200
+  overlap: 200

@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: developer-portal
+  namespace: developer-portal
+  annotations:
+    # Set ingress class in overlay: nginx | alb | azure-application-gateway | gce
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: portal.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: portal-assistant
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: portal-web
+                port:
+                  number: 80

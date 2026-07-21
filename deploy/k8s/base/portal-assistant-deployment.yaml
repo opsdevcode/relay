@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-assistant
+  namespace: developer-portal
+  labels:
+    app.kubernetes.io/name: portal-assistant
+    app.kubernetes.io/part-of: ai-developer-portal
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: portal-assistant
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: portal-assistant
+    spec:
+      containers:
+        - name: portal-assistant
+          image: ghcr.io/opsdevcode/portal-assistant:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: portal-assistant-secrets
+            - configMapRef:
+                name: portal-assistant-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi

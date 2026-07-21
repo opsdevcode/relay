@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: {{ service_name }}
+  description: {{ description | default("Containerized service") }}
+  annotations:
+    github.com/project-slug: {{ github_org }}/{{ service_name }}
+spec:
+  type: service
+  lifecycle: experimental
+  owner: {{ owner | default("platform-team") }}
