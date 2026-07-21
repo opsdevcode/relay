@@ -34,7 +34,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ${KNOWLEDGE_PATH:-../../sn}:/knowledge:ro
+      - ${KNOWLEDGE_PATH:-../knowledge/corpus}:/knowledge:ro
     depends_on:
       postgres:
         condition: service_healthy

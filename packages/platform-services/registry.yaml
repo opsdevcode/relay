@@ -4,9 +4,9 @@
   phase: v1
   knowledge:
     sources:
-      - sn-proposals
-      - sn-standards
-      - sn-docs
+      - corpus-proposals
+      - corpus-standards
+      - corpus-docs
   tools:
     - docs_search
   views:
@@ -18,7 +18,7 @@
   phase: v1
   knowledge:
     paths:
-      - proposals/ai-developer-portal
+      - proposals/platform-overview
   tools:
     - scaffold_service
   views:
@@ -26,11 +26,11 @@
 
 - id: developer-sandbox
   name: Developer Sandbox
-  description: Self-service sandbox request (GitHub Issue stub for ServiceNow in prod)
+  description: Self-service sandbox request (GitHub Issue stub for ticket system in prod)
   phase: v2
   knowledge:
     paths:
-      - proposals/developer-sandbox-platform
+      - proposals/platform-overview
   tools:
     - request_sandbox
   views:

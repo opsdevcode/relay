@@ -1,10 +1,6 @@
 # AI Developer Portal — Working Model
 
-Local-first implementation of the [conversational internal developer portal](https://github.com/opsdevcode/sn/tree/main/proposals/ai-developer-portal) proposal.
-
-**Local now:** `docker compose up` runs Postgres, Redis, the Portal Assistant API, and a web chat UI.
-
-**Kubernetes later:** manifests under `deploy/k8s/` use standard resources only (Deployment, Service, Ingress, ConfigMap, Secret). Cloud-specific bits (AWS ALB, Azure Front Door, GKE Gateway) live in optional overlays — not in the base.
+Local-first conversational internal developer portal: cited Q&A, platform-service registry, and draft-and-route actions.
 
 ## Quick start
 
@@ -12,25 +8,26 @@ Local-first implementation of the [conversational internal developer portal](htt
 cp .env.example .env
 # Optional: set ANTHROPIC_API_KEY for live chat synthesis
 
-# Point at your local clone of the sn proposals repo (knowledge corpus)
-export KNOWLEDGE_PATH=/path/to/sn
-
 make up
-make ingest    # index markdown from KNOWLEDGE_PATH
+make ingest    # indexes bundled knowledge/corpus by default
 open http://localhost:3000
 ```
 
 API: http://localhost:8080 · Health: http://localhost:8080/health
 
+Override the knowledge tree by setting `KNOWLEDGE_PATH` in `.env` to any directory of markdown you want indexed.
+
 ## Repo layout
 
 ```text
 apps/
-  portal-assistant/     # FastAPI: chat, RAG, tools, LangGraph (phase 2)
+  portal-assistant/     # FastAPI: chat, RAG, tools
   web/                  # Static chat UI (Backstage plugin comes later)
 packages/
   platform-services/    # Registry: knowledge + tools + views per capability
-  rag-ingestion/        # Index knowledge sources into Postgres
+knowledge/
+  corpus/               # Bundled sample docs (proposals, standards, docs)
+  sources.yaml          # Ingestion config
 templates/
   k8s-service/          # Golden-path: containerized service (any managed K8s)
 deploy/
@@ -38,7 +35,6 @@ deploy/
   k8s/base/             # Portable K8s (no cloud CRDs)
   k8s/overlays/         # aks | eks | gke — ingress/LB annotations only
 catalog/entities/       # Seed catalog-info.yaml for demo
-knowledge/sources.yaml  # What to index
 docs/
 ```
 
@@ -51,7 +47,7 @@ flowchart LR
   PA --> RD[(Redis sessions)]
   PA --> LLM[Anthropic API]
   ING[RAG ingestion] --> PG
-  SN[(sn repo markdown)] --> ING
+  CORPUS[(knowledge corpus)] --> ING
 ```
 
 Draft-and-route: mutating tools return a **draft**; the UI requires explicit confirmation before any GitHub action runs.
@@ -72,6 +68,6 @@ See [docs/kubernetes.md](docs/kubernetes.md).
 
 | Phase | Scope |
 | --- | --- |
-| **Now** | Local compose, FTS RAG over `sn`, cited chat, platform-service registry |
+| **Now** | Local compose, FTS RAG over bundled corpus, cited chat, platform-service registry |
 | **Next** | LangGraph tools, golden-path PR scaffold, Backstage backbone |
 | **Later** | Managed K8s deploy, Foundry/AI Search swap-in, Teams bot |

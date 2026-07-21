@@ -1,19 +1,15 @@
 sources:
-  - name: sn-proposals
+  - name: corpus-proposals
     path: /knowledge/proposals
     glob: "**/*.md"
     visibility: public
-  - name: sn-standards
+  - name: corpus-standards
     path: /knowledge/standards
     glob: "**/*.md"
     visibility: public
-  - name: sn-docs
+  - name: corpus-docs
     path: /knowledge/docs
     glob: "**/*.md"
-    visibility: public
-  - name: sn-root
-    path: /knowledge
-    glob: "*.md"
     visibility: public
 
 chunk:

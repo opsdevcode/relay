@@ -15,7 +15,7 @@ async def synthesize(question: str, contexts: list[dict]) -> str:
         if not contexts:
             return (
                 "No indexed documents matched your question. "
-                "Run `make ingest` after setting KNOWLEDGE_PATH to your sn repo clone.\n\n"
+                "Run `make ingest` after confirming KNOWLEDGE_PATH points at your markdown corpus.\n\n"
                 "Set ANTHROPIC_API_KEY in .env for synthesized answers."
             )
         lines = ["Retrieved context (set ANTHROPIC_API_KEY for synthesized answers):\n"]
