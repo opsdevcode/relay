@@ -9,4 +9,4 @@ patches:
     patch: |
       - op: replace
         path: /spec/ingressClassName
-        value: azure-application-gateway
+        value: nginx

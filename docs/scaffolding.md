@@ -39,4 +39,4 @@ Returns `workflow_url` and `inputs` JSON — no authentication on the portal sid
 ## Production notes
 
 - Target a different repo by extending the workflow (checkout + PR to another repository) using org-level secrets — still not stored in the portal app.
-- ServiceNow intake can replace the sandbox issue template link using the same pattern.
+- Ticket-system intake can replace the sandbox issue template link using the same pattern.

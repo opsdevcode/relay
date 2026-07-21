@@ -4,7 +4,7 @@ metadata:
   name: developer-portal
   namespace: developer-portal
   annotations:
-    # Set ingress class in overlay: nginx | alb | azure-application-gateway | gce
+    # Set ingress class in overlay: nginx | alb | gce | aks-specific
 spec:
   ingressClassName: nginx
   rules:

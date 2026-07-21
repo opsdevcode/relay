@@ -33,7 +33,7 @@ kubectl -n developer-portal create secret generic portal-assistant-secrets \
 | Overlay | Path | What changes |
 | --- | --- | --- |
 | **EKS** | `deploy/k8s/overlays/eks` | ALB ingress class + annotations |
-| **AKS** | `deploy/k8s/overlays/aks` | Application Gateway ingress class |
+| **AKS** | `deploy/k8s/overlays/aks` | Set ingress class for your AKS cluster (see overlay README) |
 | **GKE** | `deploy/k8s/overlays/gke` | GCE ingress class |
 
 ```bash
@@ -42,7 +42,7 @@ kubectl apply -k deploy/k8s/overlays/eks   # or aks / gke
 
 ## Managed services (recommended for prod)
 
-Run **Postgres** and **Redis** as managed services (RDS/Aurora, ElastiCache, Azure Database, Memorystore, etc.) instead of in-cluster StatefulSets. Update `DATABASE_URL` and `REDIS_URL` in the Secret.
+Run **Postgres** and **Redis** as managed services (RDS/Aurora, ElastiCache, Memorystore, etc.) instead of in-cluster StatefulSets. Update `DATABASE_URL` and `REDIS_URL` in the Secret.
 
 ## GitOps
 
@@ -58,7 +58,7 @@ Point Argo CD / Flux at `deploy/k8s/overlays/<cloud>` in this repo. Image tags a
 ## What you add per environment
 
 - Ingress hostname + TLS cert (cert-manager)
-- OIDC at ingress (Entra, Cognito, Google IAP)
+- OIDC at ingress (corporate IdP, Cognito, Google IAP, etc.)
 - External Secrets Operator → cloud secret store
 - NetworkPolicy (optional)
 - HPA (optional — add when load testing)

@@ -58,7 +58,7 @@ def draft_sandbox_request(purpose: str, budget: str = "500") -> dict:
         "budget_usd_monthly": budget,
         "message": (
             f"Draft: sandbox request for '{purpose}' (~${budget}/mo). "
-            "Confirm to file a GitHub Issue (ServiceNow in production)."
+            "Confirm to file a GitHub Issue (ticket-system intake in production)."
         ),
         "requires_confirmation": True,
     }
