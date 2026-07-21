@@ -2,6 +2,8 @@
 
 Local-first conversational internal developer portal: cited Q&A, platform-service registry, and draft-and-route actions.
 
+License: [BSD 3-Clause](LICENSE)
+
 ## Quick start
 
 ```bash
