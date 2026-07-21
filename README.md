@@ -68,6 +68,6 @@ See [docs/kubernetes.md](docs/kubernetes.md).
 
 | Phase | Scope |
 | --- | --- |
-| **Now** | Local compose, FTS RAG over bundled corpus, cited chat, platform-service registry |
-| **Next** | LangGraph tools, golden-path PR scaffold, Backstage backbone |
+| **Now** | Local compose, FTS RAG, cited chat, platform-service registry, Actions-only scaffold |
+| **Next** | LangGraph tools, Backstage backbone |
 | **Later** | Managed K8s deploy, Foundry/AI Search swap-in, Teams bot |

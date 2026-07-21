@@ -24,6 +24,28 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;");
 }
 
+function formatActionResult(data) {
+  if (data.workflow_url) {
+    const inputs = JSON.stringify(data.inputs || {}, null, 2);
+    return (
+      `${escapeHtml(data.message || "")}` +
+      `<div class="draft">` +
+      `<a href="${escapeHtml(data.workflow_url)}" target="_blank" rel="noopener">` +
+      `Run workflow: ${escapeHtml(data.workflow_name || "Scaffold K8s Service")}</a>` +
+      `<pre class="inputs">${escapeHtml(inputs)}</pre>` +
+      `<p class="hint">Paste these values into the workflow form if they are not pre-filled.</p>` +
+      `</div>`
+    );
+  }
+  if (data.issue_url) {
+    return (
+      `${escapeHtml(data.message || "")} ` +
+      `<div class="draft"><a href="${escapeHtml(data.issue_url)}" target="_blank" rel="noopener">Open issue template</a></div>`
+    );
+  }
+  return escapeHtml(data.message || JSON.stringify(data));
+}
+
 async function refreshHealth() {
   try {
     const res = await fetch(`${API}/health`);
@@ -59,10 +81,10 @@ form.addEventListener("submit", async (event) => {
     }
     if (data.draft?.requires_confirmation) {
       pendingDraft = data.draft;
-      extra += `<div class="draft"><strong>Draft action:</strong> ${escapeHtml(data.draft.action)}<br/><button type="button" id="confirm-draft">Confirm</button></div>`;
+      extra += `<div class="draft"><strong>Draft action:</strong> ${escapeHtml(data.draft.action)}<br/><button type="button" class="confirm-draft">Confirm</button></div>`;
     }
     addMessage("assistant", data.answer, extra);
-    document.getElementById("confirm-draft")?.addEventListener("click", confirmDraft);
+    document.querySelector(".confirm-draft")?.addEventListener("click", confirmDraft);
   } catch (err) {
     addMessage("assistant", `Error: ${err.message}`);
   } finally {
@@ -78,7 +100,7 @@ async function confirmDraft() {
     body: JSON.stringify({ draft: pendingDraft }),
   });
   const data = await res.json();
-  addMessage("assistant", data.message || JSON.stringify(data));
+  addMessage("assistant", "", formatActionResult(data));
   pendingDraft = null;
 }
 

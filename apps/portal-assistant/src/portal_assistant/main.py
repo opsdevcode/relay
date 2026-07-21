@@ -8,8 +8,9 @@ from pydantic import BaseModel, Field
 
 from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
+from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
 from portal_assistant.store import DocumentStore
-from portal_assistant.tools import load_registry
+from portal_assistant.tools import draft_sandbox_request, load_registry
 
 
 class ChatRequest(BaseModel):
@@ -56,6 +57,14 @@ def platform_services() -> list[dict]:
     return load_registry()
 
 
+@app.get("/actions/scaffold-link")
+def scaffold_link(service_name: str, description: str = "") -> dict:
+    try:
+        return build_workflow_dispatch(service_name, description)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(body: ChatRequest) -> ChatResponse:
     result = await handle_message(body.message.strip(), store)
@@ -69,19 +78,19 @@ async def confirm_action(body: ConfirmRequest) -> dict:
     if not action:
         raise HTTPException(status_code=400, detail="Missing draft action")
 
-    if not settings.github_token:
+    if action == "scaffold_service":
+        return confirm_scaffold_draft(draft)
+
+    if action == "request_sandbox":
+        issue_url = (
+            f"https://github.com/{settings.github_repo}/issues/new"
+            "?template=sandbox-request.md"
+            f"&title={draft.get('purpose', 'Sandbox request')[:80]}"
+        )
         return {
-            "status": "simulated",
-            "message": (
-                f"Confirmed `{action}` — GITHUB_TOKEN not set, so no GitHub call was made. "
-                "In production this opens a PR or files ServiceNow intake."
-            ),
-            "draft": draft,
+            "status": "issue_template",
+            "message": "Open the GitHub issue template to file your sandbox request.",
+            "issue_url": issue_url,
         }
 
-    # Phase 2: wire Octokit PR / Issue creation here
-    return {
-        "status": "accepted",
-        "message": f"Confirmed `{action}`. GitHub integration stub — implement in phase 2.",
-        "draft": draft,
-    }
+    raise HTTPException(status_code=400, detail=f"Unknown action: {action}")

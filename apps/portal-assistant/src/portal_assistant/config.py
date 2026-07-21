@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     web_origin: str = "http://localhost:3000"
     knowledge_path: str = "/knowledge"
-    github_token: str = ""
     github_org: str = "opsdevcode"
+    github_repo: str = "opsdevcode/ai-developer-portal"
 
 
 settings = Settings()

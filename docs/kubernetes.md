@@ -25,8 +25,7 @@ kubectl create namespace developer-portal
 kubectl -n developer-portal create secret generic portal-assistant-secrets \
   --from-literal=ANTHROPIC_API_KEY=... \
   --from-literal=DATABASE_URL=postgresql://... \
-  --from-literal=REDIS_URL=redis://... \
-  --from-literal=GITHUB_TOKEN=...
+  --from-literal=REDIS_URL=redis://...
 ```
 
 ## Cloud overlays

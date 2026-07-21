@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from portal_assistant.config import settings
+from portal_assistant.scaffold import build_workflow_dispatch
 
 
 def load_registry() -> list[dict]:
@@ -41,18 +41,11 @@ def service_health(service_name: str) -> dict:
     }
 
 
-def draft_scaffold(service_name: str, repo: str | None = None) -> dict:
-    target_repo = repo or f"{settings.github_org}/{service_name}"
+def draft_scaffold(service_name: str, description: str = "") -> dict:
+    payload = build_workflow_dispatch(service_name, description)
     return {
-        "action": "scaffold_service",
+        **payload,
         "status": "draft",
-        "service_name": service_name,
-        "target_repo": target_repo,
-        "template": "templates/k8s-service",
-        "message": (
-            f"Draft: create `{service_name}` from the k8s-service golden path in `{target_repo}`. "
-            "Confirm in the UI to open a PR (requires GITHUB_TOKEN)."
-        ),
         "requires_confirmation": True,
     }
 

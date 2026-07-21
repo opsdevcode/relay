@@ -1,0 +1,68 @@
+name: Scaffold K8s Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: Service name (kebab-case, e.g. demo-api)
+        required: true
+        type: string
+      description:
+        description: Short service description
+        required: false
+        type: string
+        default: Containerized service
+      github_org:
+        description: GitHub org for image/catalog slug
+        required: false
+        type: string
+        default: opsdevcode
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate service name
+        run: |
+          name="${{ inputs.service_name }}"
+          if ! echo "$name" | grep -Eq '^[a-z][a-z0-9-]{1,62}$'; then
+            echo "service_name must be kebab-case (lowercase letters, numbers, hyphens)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Render golden-path template
+        env:
+          SERVICE_NAME: ${{ inputs.service_name }}
+          GITHUB_ORG: ${{ inputs.github_org }}
+          DESCRIPTION: ${{ inputs.description }}
+          DEST: examples/services/${{ inputs.service_name }}
+        run: |
+          chmod +x scripts/render-k8s-service-template.sh
+          ./scripts/render-k8s-service-template.sh
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: scaffold/${{ inputs.service_name }}
+          delete-branch: true
+          title: "scaffold: add ${{ inputs.service_name }} (k8s golden path)"
+          commit-message: "scaffold: add ${{ inputs.service_name }}"
+          body: |
+            ## Summary
+            Scaffold **`${{ inputs.service_name }}`** from the k8s-service golden path via Platform Assistant workflow dispatch.
+
+            ## Inputs
+            - **service_name:** `${{ inputs.service_name }}`
+            - **description:** ${{ inputs.description }}
+            - **github_org:** `${{ inputs.github_org }}`
+
+            ## Review checklist
+            - [ ] Service name and catalog metadata look correct
+            - [ ] K8s manifests fit your cluster conventions
+            - [ ] CI/CD wiring added (if needed) before merge

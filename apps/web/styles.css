@@ -93,4 +93,23 @@ button:disabled { opacity: 0.6; cursor: wait; }
   padding: 0.35rem 0.75rem;
 }
 
+.draft pre.inputs {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem;
+  background: #0b1220;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+}
+
+.draft .hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.draft a {
+  color: #93c5fd;
+}
+
 footer { color: var(--muted); font-size: 0.8rem; }

@@ -7,4 +7,4 @@ data:
   ANTHROPIC_MODEL: claude-sonnet-4-20250514
   WEB_ORIGIN: https://portal.example.com
   GITHUB_ORG: opsdevcode
-  # DATABASE_URL and REDIS_URL from secrets / external managed services
+  GITHUB_REPO: opsdevcode/ai-developer-portal

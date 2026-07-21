@@ -27,8 +27,8 @@ By default, ingestion indexes the **bundled** sample docs under `knowledge/corpu
 | --- | --- |
 | "What are the required resource tags?" | Cited answer from `standards/resource-tagging.md` |
 | "What platform services are available?" | Lists registry from `packages/platform-services/registry.yaml` |
-| "Create a new service called demo-api" | Draft scaffold — confirm button |
-| "I need a sandbox for a POC" | Draft sandbox request |
+| "Create a new service called demo-api" | Draft scaffold → **Confirm** → GitHub Actions **Run workflow** link |
+| "I need a sandbox for a POC" | Draft → **Confirm** → GitHub issue template link |
 | "How is cloudopt doing?" | Mock observability insight |
 
 ## Without Anthropic API key
@@ -49,5 +49,5 @@ Ingest still works. `/chat` returns retrieved chunks with source paths instead o
 ## Next steps
 
 - Add Backstage (`apps/backstage/`) as catalog backbone
-- Wire GitHub Actions scaffold workflow (no tokens in repo)
+- Wire GitHub Actions scaffold workflow (see [docs/scaffolding.md](scaffolding.md))
 - Swap FTS for pgvector embeddings when model keys are available
