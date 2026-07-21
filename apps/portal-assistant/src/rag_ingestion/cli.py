@@ -24,8 +24,15 @@ def resolve_base(path: str) -> Path:
 
 
 def ingest(config_path: Path | None = None) -> int:
-    root = Path(__file__).resolve().parents[4]
-    cfg = config_path or root / "knowledge" / "sources.yaml"
+    if config_path is None:
+        candidates = [
+            Path(settings.knowledge_path).parent / "sources.yaml",
+            Path("/app/knowledge/sources.yaml"),
+            Path(__file__).resolve().parents[4] / "knowledge" / "sources.yaml",
+        ]
+        cfg = next((p for p in candidates if p.is_file()), candidates[-1])
+    else:
+        cfg = config_path
     chunk_cfg = yaml.safe_load(cfg.read_text(encoding="utf-8")) if cfg.exists() else {}
     size = chunk_cfg.get("chunk", {}).get("size", 1200)
     overlap = chunk_cfg.get("chunk", {}).get("overlap", 200)

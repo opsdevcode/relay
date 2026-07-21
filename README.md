@@ -6,18 +6,19 @@ License: [BSD 3-Clause](LICENSE)
 
 ## Quick start
 
-```bash
-cp .env.example .env
-# Optional: set ANTHROPIC_API_KEY for live chat synthesis
+No API keys required — answers use **extractive mode** from the bundled docs.
 
-make up
-make ingest    # indexes bundled knowledge/corpus by default
+```bash
+make up          # creates .env from .env.example if missing, starts stack, auto-indexes
 open http://localhost:3000
+make smoke       # optional sanity check
 ```
+
+Optional: set `ANTHROPIC_API_KEY` in `.env` for synthesized LLM answers instead of extractive excerpts.
 
 API: http://localhost:8080 · Health: http://localhost:8080/health
 
-Override the knowledge tree by setting `KNOWLEDGE_PATH` in `.env` to any directory of markdown you want indexed.
+To index a custom markdown tree, add `deploy/docker-compose.override.yml` (see `deploy/docker-compose.override.example.yml`).
 
 ## Repo layout
 

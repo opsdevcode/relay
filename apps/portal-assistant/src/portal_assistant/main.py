@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
@@ -10,7 +11,9 @@ from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
 from portal_assistant.store import DocumentStore
-from portal_assistant.tools import draft_sandbox_request, load_registry
+from portal_assistant.tools import load_registry
+
+logger = logging.getLogger(__name__)
 
 
 class ChatRequest(BaseModel):
@@ -30,9 +33,24 @@ class ConfirmRequest(BaseModel):
 store = DocumentStore(settings.database_url)
 
 
+def _ensure_indexed() -> int:
+    store.init_schema()
+    if store.count() > 0:
+        return store.count()
+    try:
+        from rag_ingestion.cli import ingest
+
+        logger.info("Knowledge index empty — running startup ingestion")
+        ingest()
+    except Exception:
+        logger.exception("Startup ingestion failed")
+        raise
+    return store.count()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    store.init_schema()
+    _ensure_indexed()
     yield
 
 
@@ -49,7 +67,13 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "documents": store.count()}
+    count = store.count()
+    return {
+        "status": "ok",
+        "documents": count,
+        "answer_mode": "llm" if settings.anthropic_api_key else "extractive",
+        "api_keys_required": False,
+    }
 
 
 @app.get("/platform-services")

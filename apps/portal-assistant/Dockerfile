@@ -4,11 +4,12 @@ WORKDIR /app
 
 COPY apps/portal-assistant/pyproject.toml apps/portal-assistant/
 COPY apps/portal-assistant/src apps/portal-assistant/src
+COPY apps/portal-assistant/tests apps/portal-assistant/tests
 COPY knowledge knowledge
 COPY packages packages
 COPY catalog catalog
 
-RUN pip install --no-cache-dir -e apps/portal-assistant
+RUN pip install --no-cache-dir -e "apps/portal-assistant[dev]"
 
 ENV PYTHONPATH=/app/apps/portal-assistant/src
 WORKDIR /app/apps/portal-assistant

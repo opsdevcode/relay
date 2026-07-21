@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import httpx
+import re
 
 from portal_assistant.config import settings
 
@@ -9,25 +9,67 @@ Answer using ONLY the provided context. If the context is insufficient, say you 
 Always include a "Sources" section listing each source path you used.
 Be concise and practical. Do not invent policies or numbers not present in the context."""
 
+_EXCERPT_MAX = 480
+
+
+def _best_excerpt(content: str, question: str) -> str:
+    """Pick the most relevant paragraph from a chunk (offline / no API key)."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", content) if p.strip()]
+    if not paragraphs:
+        return content[:_EXCERPT_MAX].strip()
+
+    terms = [t for t in re.findall(r"[a-z0-9-]{3,}", question.lower()) if t not in {"what", "are", "the", "how", "does", "for", "and", "with"}]
+    if not terms:
+        return paragraphs[0][: _EXCERPT_MAX].strip()
+
+    def score(paragraph: str) -> int:
+        lower = paragraph.lower()
+        return sum(1 for term in terms if term in lower)
+
+    best = max(paragraphs, key=score)
+    if len(best) > _EXCERPT_MAX:
+        return best[:_EXCERPT_MAX].rstrip() + "…"
+    return best
+
+
+def format_extractive_answer(question: str, contexts: list[dict]) -> str:
+    if not contexts:
+        return (
+            "I couldn't find anything in the indexed docs for that question. "
+            "If you just ran `make up`, wait a few seconds for startup indexing or run `make ingest`."
+        )
+
+    parts: list[str] = [
+        "Here's what the indexed documentation says (extractive mode — no API keys required):"
+    ]
+    seen: set[str] = set()
+    for ctx in contexts[:3]:
+        source = ctx["source"]
+        if source in seen:
+            continue
+        seen.add(source)
+        excerpt = _best_excerpt(ctx["content"], question)
+        parts.append(f"**{ctx['title']}** (`{source}`)\n{excerpt}")
+
+    return "\n\n".join(parts)
+
 
 async def synthesize(question: str, contexts: list[dict]) -> str:
     if not settings.anthropic_api_key:
-        if not contexts:
-            return (
-                "No indexed documents matched your question. "
-                "Run `make ingest` after confirming KNOWLEDGE_PATH points at your markdown corpus.\n\n"
-                "Set ANTHROPIC_API_KEY in .env for synthesized answers."
-            )
-        lines = ["Retrieved context (set ANTHROPIC_API_KEY for synthesized answers):\n"]
-        for idx, ctx in enumerate(contexts, start=1):
-            lines.append(f"{idx}. **{ctx['source']}** — {ctx['title']}\n   {ctx['content'][:400]}...")
-        lines.append("\n**Sources**\n" + "\n".join(f"- {c['source']}" for c in contexts))
-        return "\n".join(lines)
+        return format_extractive_answer(question, contexts)
+
+    if not contexts:
+        return (
+            "I couldn't find anything in the indexed docs for that question. "
+            "Run `make ingest` after confirming the knowledge corpus is mounted."
+        )
 
     context_block = "\n\n---\n\n".join(
         f"Source: {c['source']}\nTitle: {c['title']}\n{c['content']}" for c in contexts
     )
     user_message = f"Question: {question}\n\nContext:\n{context_block}"
+
+    import httpx
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(

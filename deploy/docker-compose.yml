@@ -26,7 +26,8 @@ services:
       context: ..
       dockerfile: apps/portal-assistant/Dockerfile
     env_file:
-      - ../.env
+      - path: ../.env
+        required: false
     environment:
       DATABASE_URL: postgresql://portal:portal@postgres:5432/portal
       REDIS_URL: redis://redis:6379/0
@@ -34,7 +35,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ${KNOWLEDGE_PATH:-../knowledge/corpus}:/knowledge:ro
+      - ../knowledge/corpus:/knowledge:ro
     depends_on:
       postgres:
         condition: service_healthy

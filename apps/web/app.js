@@ -50,9 +50,10 @@ async function refreshHealth() {
   try {
     const res = await fetch(`${API}/health`);
     const data = await res.json();
-    statusEl.textContent = `Indexed documents: ${data.documents}`;
+    const mode = data.answer_mode === "llm" ? "LLM" : "extractive (no API keys)";
+    statusEl.textContent = `Documents: ${data.documents} · Mode: ${mode}`;
   } catch {
-    statusEl.textContent = "API unreachable — is portal-assistant running?";
+    statusEl.textContent = "API unreachable — run make up";
   }
 }
 
