@@ -74,7 +74,7 @@ Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend 
 | Storage | `standard` StorageClass | Set per cluster in overlay |
 | Images | GHCR (`ghcr.io/opsdevcode/...`) | Same — any registry |
 
-See [docs/kubernetes.md](docs/kubernetes.md).
+See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md)
 
 ## Status
 

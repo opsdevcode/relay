@@ -1,0 +1,9 @@
+# Default: all files require owner review
+*       @erskaggs
+
+# CI/CD and governance — explicit
+/.github/               @erskaggs
+/.github/workflows/     @erskaggs
+/scripts/               @erskaggs
+/deploy/                @erskaggs
+/docs/security-governance.md @erskaggs
