@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from portal_assistant import __version__
 from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
@@ -70,6 +71,7 @@ def health() -> dict:
     count = store.count()
     return {
         "status": "ok",
+        "version": __version__,
         "documents": count,
         "answer_mode": "llm" if settings.anthropic_api_key else "extractive",
         "api_keys_required": False,

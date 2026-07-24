@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from portal_assistant.chunking import chunk_markdown
 from portal_assistant.llm import format_extractive_answer
 

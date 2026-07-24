@@ -47,7 +47,7 @@ What ships in this repo today:
 | Platform registry | Done (YAML) | Four services declared; agent partially hardcoded |
 | K8s manifests | Done (base) | Portal web + assistant; no in-cluster DB/corpus yet |
 | Local testing | Done (baseline) | `make ci`, `make smoke`, `make verify`; see [local-testing.md](local-testing.md) |
-| CI | Done | Unit tests on PR/push via `.github/workflows/ci.yml` |
+| CI / PR workflow | Done | Repave-style workflows + ruleset JSON + [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Backstage | Planned | `apps/backstage/README.md` placeholder |
 | Teams / Slack | Planned | Same API; adapters not built |
 | Semantic RAG | Not started | pgvector installed; embeddings unused |

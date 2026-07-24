@@ -4,13 +4,15 @@ Local-first conversational internal developer portal: cited Q&A, platform-servic
 
 License: [BSD 3-Clause](LICENSE)
 
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) (PR workflow + Conventional Commits, aligned with [repave](https://github.com/opsdevcode/repave))
+
 ## Quick start
 
 No API keys required — answers use **extractive mode** from the bundled docs.
 
 ```bash
 make up          # creates .env from .env.example if missing, starts stack, auto-indexes
-make ci          # unit tests — no Docker, no API keys (same as CI)
+make ci          # ruff + mypy + bandit + pip-audit + pytest (host; same gates as CI)
 open http://localhost:3000
 make smoke       # HTTP end-to-end check (stack must be running)
 make verify      # unit tests in container + smoke
@@ -90,3 +92,11 @@ See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](do
 | **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
 
 Details, milestones, and work item IDs: **[docs/roadmap.md](docs/roadmap.md)**.
+
+## Releases
+
+Version tags (`vX.Y.Z`) and GitHub Releases are automated from
+[Conventional Commits](https://www.conventionalcommits.org/) on `main` via
+[python-semantic-release](https://python-semantic-release.readthedocs.io/).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for commit types, semver bumps, and the
+`PORTAL_RELEASE_TOKEN` secret.

@@ -14,7 +14,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3.0", "pytest-asyncio>=0.24.0"]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "ruff>=0.9.0",
+  "mypy>=1.14.0",
+  "bandit[toml]>=1.8.0",
+  "pip-audit>=2.9.0",
+  "types-PyYAML",
+  "build>=1.2.0",
+]
 
 [build-system]
 requires = ["setuptools>=75.0"]
@@ -26,3 +35,43 @@ where = ["src"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+explicit_package_bases = true
+warn_return_any = true
+warn_unused_ignores = true
+check_untyped_defs = true
+no_implicit_optional = true
+mypy_path = ["src"]
+packages = ["portal_assistant", "rag_ingestion"]
+
+[[tool.mypy.overrides]]
+module = ["redis.*", "psycopg.*", "yaml.*"]
+ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["src/portal_assistant/__init__.py:__version__"]
+tag_format = "v{version}"
+commit_message = "chore(release): {version}"
+build_command = "python -m build"
+upload_to_vcs_release = true
+upload_to_pypi = false

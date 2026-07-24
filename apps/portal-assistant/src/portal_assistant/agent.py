@@ -33,7 +33,7 @@ def extract_service_name(message: str) -> str:
     skip = {"create", "service", "scaffold", "called", "named", "new", "the", "for", "please"}
     for token in tokens:
         if token not in skip:
-            return token
+            return str(token)
     return "demo-service"
 
 
