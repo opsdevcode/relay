@@ -4,13 +4,15 @@ Local-first conversational internal developer portal: cited Q&A, platform-servic
 
 License: [BSD 3-Clause](LICENSE)
 
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) (PR workflow + Conventional Commits, aligned with [repave](https://github.com/opsdevcode/repave))
+
 ## Quick start
 
 No API keys required — answers use **extractive mode** from the bundled docs.
 
 ```bash
 make up          # creates .env from .env.example if missing, starts stack, auto-indexes
-make ci          # unit tests — no Docker, no API keys (same as CI)
+make ci          # ruff + mypy + bandit + pip-audit + pytest (host; same gates as CI)
 open http://localhost:3000
 make smoke       # HTTP end-to-end check (stack must be running)
 make verify      # unit tests in container + smoke

@@ -18,9 +18,10 @@ def _best_excerpt(content: str, question: str) -> str:
     if not paragraphs:
         return content[:_EXCERPT_MAX].strip()
 
-    terms = [t for t in re.findall(r"[a-z0-9-]{3,}", question.lower()) if t not in {"what", "are", "the", "how", "does", "for", "and", "with"}]
+    stop = {"what", "are", "the", "how", "does", "for", "and", "with"}
+    terms = [t for t in re.findall(r"[a-z0-9-]{3,}", question.lower()) if t not in stop]
     if not terms:
-        return paragraphs[0][: _EXCERPT_MAX].strip()
+        return paragraphs[0][:_EXCERPT_MAX].strip()
 
     def score(paragraph: str) -> int:
         lower = paragraph.lower()
@@ -36,7 +37,8 @@ def format_extractive_answer(question: str, contexts: list[dict]) -> str:
     if not contexts:
         return (
             "I couldn't find anything in the indexed docs for that question. "
-            "If you just ran `make up`, wait a few seconds for startup indexing or run `make ingest`."
+            "If you just ran `make up`, wait a few seconds for startup indexing "
+            "or run `make ingest`."
         )
 
     parts: list[str] = [
@@ -88,5 +90,6 @@ async def synthesize(question: str, contexts: list[dict]) -> str:
         )
         response.raise_for_status()
         payload = response.json()
-        parts = [block.get("text", "") for block in payload.get("content", []) if block.get("type") == "text"]
+        content_blocks = payload.get("content", [])
+        parts = [block.get("text", "") for block in content_blocks if block.get("type") == "text"]
         return "\n".join(parts).strip()

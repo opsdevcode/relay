@@ -37,7 +37,8 @@ def build_workflow_dispatch(service_name: str, description: str = "") -> dict:
             f"1. Open **Run workflow**: {workflow_url}\n"
             f"2. Set **service_name** to `{service_name}`\n"
             f"3. Set **description** to `{desc}`\n"
-            f"4. Click **Run workflow** — Actions opens a PR under `examples/services/{service_name}/`"
+            f"4. Click **Run workflow** — Actions opens a PR under "
+            f"`examples/services/{service_name}/`"
         ),
         "message": (
             f"Ready to scaffold **`{service_name}`**. "
@@ -48,11 +49,7 @@ def build_workflow_dispatch(service_name: str, description: str = "") -> dict:
 
 def confirm_scaffold_draft(draft: dict) -> dict:
     inputs = draft.get("inputs") or {}
-    service_name = (
-        draft.get("service_name")
-        or inputs.get("service_name")
-        or "demo-service"
-    )
+    service_name = draft.get("service_name") or inputs.get("service_name") or "demo-service"
     description = draft.get("description") or inputs.get("description") or ""
     payload = build_workflow_dispatch(service_name, description)
     return {

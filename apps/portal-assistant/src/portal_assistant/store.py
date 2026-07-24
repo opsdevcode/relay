@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, cast
+
 import psycopg
 from psycopg.rows import dict_row
 
@@ -14,7 +16,9 @@ CREATE TABLE IF NOT EXISTS documents (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     visibility TEXT NOT NULL DEFAULT 'public',
-    content_tsv tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || content)) STORED,
+    content_tsv tsvector GENERATED ALWAYS AS (
+        to_tsvector('english', coalesce(title, '') || ' ' || content)
+    ) STORED,
     UNIQUE (source, title, content)
 );
 
@@ -26,7 +30,7 @@ class DocumentStore:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
 
-    def connect(self) -> psycopg.Connection:
+    def connect(self) -> psycopg.Connection[Any]:
         return psycopg.connect(self.database_url, row_factory=dict_row)
 
     def init_schema(self) -> None:
@@ -51,7 +55,7 @@ class DocumentStore:
             conn.commit()
         return len(chunks)
 
-    def search(self, query: str, limit: int = 6) -> list[dict]:
+    def search(self, query: str, limit: int = 6) -> list[dict[str, Any]]:
         with self.connect() as conn:
             rows = conn.execute(
                 """
@@ -64,9 +68,11 @@ class DocumentStore:
                 """,
                 (query, query, limit),
             ).fetchall()
-        return list(rows)
+        return cast(list[dict[str, Any]], list(rows))
 
     def count(self) -> int:
         with self.connect() as conn:
             row = conn.execute("SELECT COUNT(*) AS c FROM documents").fetchone()
-            return int(row["c"]) if row else 0
+            if not row:
+                return 0
+            return int(cast(dict[str, Any], row)["c"])

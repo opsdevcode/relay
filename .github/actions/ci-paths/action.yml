@@ -1,0 +1,34 @@
+name: Detect CI-needed paths
+description: >-
+  True when the change set includes files outside docs-only paths (see
+  CONTRIBUTING.md). Workflows always run so required checks report success.
+outputs:
+  ci_needed:
+    description: Run full CI when true; docs-only changes are false
+    value: ${{ steps.detect.outputs.ci_needed }}
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+        ci_needed=false
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          mapfile -t files < <(git diff --name-only "$base" "$head")
+        elif [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+          mapfile -t files < <(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+        else
+          mapfile -t files < <(git show --name-only --pretty=format: HEAD)
+        fi
+        for f in "${files[@]}"; do
+          [ -z "$f" ] && continue
+          case "$f" in
+            docs/*|LICENSE|.github/pull_request_template.md) continue ;;
+            *.md) continue ;;
+            *) ci_needed=true; break ;;
+          esac
+        done
+        echo "ci_needed=$ci_needed" >> "$GITHUB_OUTPUT"

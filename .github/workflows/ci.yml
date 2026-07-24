@@ -1,25 +1,40 @@
 name: CI
 
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/portal-assistant
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
+      - uses: ./.github/actions/ci-paths
+        id: paths
+
+      - name: Docs-only change (skip tests)
+        if: steps.paths.outputs.ci_needed != 'true'
+        run: echo "No code changes outside docs-only paths; skipping test suite."
+
       - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+        if: steps.paths.outputs.ci_needed == 'true'
         with:
           python-version: "3.12"
 
       - name: Install portal-assistant (dev)
-        run: pip install --no-cache-dir -e "./apps/portal-assistant[dev]"
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: pip install --no-cache-dir -e ".[dev]"
 
-      - name: Unit tests (no API keys, no Docker)
-        run: make ci
+      - name: Run tests
+        if: steps.paths.outputs.ci_needed == 'true'
+        env:
+          PYTHONPATH: src
+        run: python -m pytest -q

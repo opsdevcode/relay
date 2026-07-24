@@ -1,5 +1,3 @@
-import pytest
-
 from portal_assistant.chunking import chunk_markdown
 
 

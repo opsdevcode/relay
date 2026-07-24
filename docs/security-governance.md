@@ -6,7 +6,8 @@ This repository is configured so **only [@erskaggs](https://github.com/erskaggs)
 
 | Control | Setting |
 | --- | --- |
-| **Branch protection (`main`)** | Push restricted to `erskaggs` only; PRs require CODEOWNER review; no force-push or deletion; linear history; conversation resolution required |
+| **Branch protection / ruleset (`main`)** | PRs required; required checks: `test`, quality, security, commitlint, semantic PR (see `.github/rulesets/main-branch.json`) |
+| **Branch protection (`main`)** | Push may be restricted to maintainer; CODEOWNER review on PRs; no force-push |
 | **CODEOWNERS** | All paths (especially `.github/workflows/`) owned by `erskaggs` |
 | **Actions: allowed actions** | `local_only` — workflows in this repo only, no third-party reusable workflows |
 | **Actions: SHA pinning** | Required — actions must use full commit SHAs |

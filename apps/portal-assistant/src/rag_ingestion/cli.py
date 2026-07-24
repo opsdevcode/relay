@@ -14,7 +14,8 @@ from portal_assistant.store import DocumentStore
 def load_sources(config_path: Path) -> list[dict]:
     with config_path.open(encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
-    return data.get("sources", [])
+    sources = data.get("sources", [])
+    return sources if isinstance(sources, list) else []
 
 
 def resolve_base(path: str) -> Path:

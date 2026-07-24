@@ -1,0 +1,80 @@
+name: Python Quality and Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Code quality (Ruff + mypy)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/portal-assistant
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: ./.github/actions/ci-paths
+        id: paths
+
+      - name: Docs-only change (skip quality)
+        if: steps.paths.outputs.ci_needed != 'true'
+        run: echo "No code changes outside docs-only paths; skipping quality checks."
+
+      - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+        if: steps.paths.outputs.ci_needed == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install portal-assistant (dev)
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: pip install --no-cache-dir -e ".[dev]"
+
+      - name: Ruff lint
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: ruff check src tests
+
+      - name: Ruff format
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: ruff format --check src tests
+
+      - name: mypy
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: mypy src
+
+  security:
+    name: Security (Bandit + pip-audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/portal-assistant
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: ./.github/actions/ci-paths
+        id: paths
+
+      - name: Docs-only change (skip security)
+        if: steps.paths.outputs.ci_needed != 'true'
+        run: echo "No code changes outside docs-only paths; skipping security scans."
+
+      - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+        if: steps.paths.outputs.ci_needed == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install portal-assistant (dev)
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: pip install --no-cache-dir -e ".[dev]"
+
+      - name: Bandit (Python SAST)
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: bandit -r src -c pyproject.toml
+
+      - name: pip-audit (dependency vulnerabilities)
+        if: steps.paths.outputs.ci_needed == 'true'
+        run: pip-audit

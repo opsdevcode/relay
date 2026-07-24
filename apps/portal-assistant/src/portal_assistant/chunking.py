@@ -17,7 +17,9 @@ def slugify(text: str) -> str:
     return base or "doc"
 
 
-def chunk_markdown(text: str, source: str, title: str, size: int = 1200, overlap: int = 200) -> list[Chunk]:
+def chunk_markdown(
+    text: str, source: str, title: str, size: int = 1200, overlap: int = 200
+) -> list[Chunk]:
     text = text.strip()
     if not text:
         return []
