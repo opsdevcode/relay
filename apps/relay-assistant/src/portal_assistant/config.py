@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     session_ttl_seconds: int = 86_400
     session_max_turns: int = 20
+    hybrid_search_enabled: bool = True
+    embedding_dimensions: int = 384
     web_origin: str = "http://localhost:3000"
     knowledge_path: str = "/knowledge"
     github_org: str = "opsdevcode"

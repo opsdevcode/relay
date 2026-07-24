@@ -8,6 +8,7 @@ echo "==> health"
 health="$(curl -sf "$API/health")"
 echo "$health" | grep -q '"status":"ok"' || { echo "health check failed"; exit 1; }
 echo "$health" | grep -q '"api_keys_required":false' || { echo "expected api_keys_required=false"; exit 1; }
+echo "$health" | grep -q '"retrieval_mode":"hybrid"' || { echo "expected hybrid retrieval after ingest"; echo "$health"; exit 1; }
 
 docs="$(echo "$health" | sed -n 's/.*"documents":\([0-9]*\).*/\1/p')"
 if [ "${docs:-0}" -lt 1 ]; then

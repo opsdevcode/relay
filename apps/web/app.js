@@ -76,7 +76,8 @@ async function refreshHealth() {
     const data = await res.json();
     const mode = data.answer_mode === "llm" ? "LLM" : "extractive (no API keys)";
     const ver = data.version ? ` · v${data.version}` : "";
-    statusEl.textContent = `Documents: ${data.documents} · Mode: ${mode}${ver}`;
+    const retrieval = data.retrieval_mode ? ` · Retrieval: ${data.retrieval_mode}` : "";
+    statusEl.textContent = `Documents: ${data.documents} · Mode: ${mode}${ver}${retrieval}`;
   } catch {
     statusEl.textContent = "API unreachable — run make up";
   }
