@@ -38,7 +38,7 @@ What ships in this repo today:
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Local stack | Done | Postgres (FTS + pgvector extension), Redis, Portal Assistant, web UI |
+| Local stack | Done | Postgres (FTS + pgvector extension), Redis, Relay API, web UI |
 | RAG | Done (FTS) | Auto-ingest on startup; bundled `knowledge/corpus/` (**15** sample docs) |
 | Answer modes | Done | Extractive (default); optional Anthropic API for synthesis |
 | Chat intents | Done | Regex routing: Q&A, services list, scaffold, sandbox, mock health |
@@ -55,6 +55,45 @@ What ships in this repo today:
 | Real observability | Not started | `service_health` returns mock data |
 
 Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
+
+---
+
+## Semver releases vs roadmap
+
+Three different “version” ideas appear in planning — keep them separate:
+
+| Term | Meaning | Example |
+| --- | --- | --- |
+| **Phase 0 / 1 / 2 / 3** | Timeboxed delivery phases in this doc | Phase 1 = pilot core |
+| **Registry `v1` / `v2` / `v3`** | Platform-service maturity tier in `registry.yaml` | `developer-sandbox` is **v2** |
+| **`vX.Y.Z` Git tag** | [Semver](https://semver.org/) for the **`relay-assistant`** Python package | [GitHub Releases](https://github.com/opsdevcode/relay/releases) |
+
+Package versions are **not** chosen in the roadmap. They are computed on merge to `main` from
+[Conventional Commits](https://www.conventionalcommits.org/) via
+[python-semantic-release](https://python-semantic-release.readthedocs.io/) (see
+[CONTRIBUTING.md](../CONTRIBUTING.md)): `feat:` → minor, `fix:` → patch, breaking → major.
+The Release workflow publishes the tag, updates `apps/relay-assistant/CHANGELOG.md`, and bumps
+`__version__` in `apps/relay-assistant/src/portal_assistant/__init__.py`.
+
+### Mapping (milestones ↔ tags)
+
+Use this table to align **roadmap milestones** with **observed or target** semver. Update the
+**Shipped** rows when a release is published; adjust **Target** rows when scope changes.
+
+| Git tag | Shipped | Roadmap milestone | What it represents |
+| --- | --- | --- | --- |
+| **v1.0.0** | 2026-07-24 | **M0** (Phase 0) | First release: local stack, Phase 0 demo hardening, CI/release automation on `main`. |
+| **v1.1.0** | 2026-07-24 | **M0** (Phase 0) | Product rename to **Relay**; paths `relay-assistant` / `relay-web`; no new Phase 1 scope. |
+| **v1.2.0+** | Target | **M1** start (Phase 1) | First releases after Phase 1 work lands (`feat:` minors): registry-driven agent, hybrid RAG, Backstage slice, etc. |
+| **v2.0.0** | Target | **M2** (Phase 2) | Reserved for **breaking** deploy or API changes when **v1 pilot complete** (governed actions, auth, real observability). Only required if integrators must change config or contracts. |
+| **v2.x / v3.0.0** | Target | **M3** (Phase 3) | Org rollout: Teams/Slack, production K8s ops, broader registry; major bump only if breaking. |
+
+**Phase 0 exit (M0 checklist)** is satisfied by behavior on `main`, not by a specific tag — but
+**≥ v1.0.0** marks the first packaged baseline. Maintainers may run **`make verify`** before
+tagging (optional gate; see M0 below).
+
+**Registry tiers (`v1` / `v2` / `v3`)** do not map 1:1 to semver majors. A **v2** platform
+service (e.g. sandbox) can ship in a **1.x** package release once its tool handler exists.
 
 ---
 
@@ -234,7 +273,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 3.1 | Microsoft Teams bot | Bot adapter → same Portal Assistant API |
+| 3.1 | Microsoft Teams bot | Bot adapter → same Relay API |
 | 3.2 | Slack bot | Same API; shared session model |
 | 3.3 | Streaming responses | SSE/WebSocket for chat UX |
 
@@ -334,6 +373,7 @@ Current registered services (working model):
 ## How this doc stays current
 
 - Update **Current state** when milestones land on `main`.
+- Update **Semver releases vs roadmap** (shipped tag rows and dates) when a GitHub Release is published.
 - Add rows to phase tables when scope changes; do not delete completed items — mark done with date in PR description.
 - Keep README **Status** table as a one-line summary linking here:
 
