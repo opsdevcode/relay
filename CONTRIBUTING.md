@@ -65,7 +65,9 @@ Configuration: `apps/relay-assistant/pyproject.toml`.
 
 Repository ruleset **main branch** (see `.github/rulesets/main-branch.json`) requires on `main`:
 
-- Changes merged via **pull request** (zero approving reviews required — solo maintainer OK)
+- Changes merged via **pull request**
+- **One approving review** for PRs from contributors (you cannot approve your own PR)
+- **Maintainer bypass:** `@erskaggs` is in the ruleset bypass list for pull-request rules only — CI checks still required; you can merge your own PRs without a review
 - Status checks: `test`, `Code quality (Ruff + mypy)`, `Security (Bandit + pip-audit)`, `commitlint`, `semantic-pull-request`
 - No force-push (`non_fast_forward`)
 
