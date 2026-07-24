@@ -1,5 +1,7 @@
 # Local setup
 
+For the full product roadmap (phases, milestones, platform services), see [roadmap.md](roadmap.md).
+
 ## Prerequisites
 
 - Docker Desktop (or Docker Engine + Compose v2)

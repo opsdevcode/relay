@@ -75,12 +75,14 @@ Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend 
 | Storage | `standard` StorageClass | Set per cluster in overlay |
 | Images | GHCR (`ghcr.io/opsdevcode/...`) | Same — any registry |
 
-See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md)
+See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md) · **[docs/roadmap.md](docs/roadmap.md)** (full plan)
 
 ## Status
 
 | Phase | Scope |
 | --- | --- |
 | **Now** | Local compose, FTS RAG, cited chat, platform-service registry, Actions-only scaffold |
-| **Next** | LangGraph tools, Backstage backbone |
-| **Later** | Managed K8s deploy (incl. AKS), hybrid RAG swap-in, **Teams and Slack** bots |
+| **Next** | Demo hardening (Phase 0), then registry-driven agent, hybrid RAG, Backstage slice |
+| **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
+
+Details, milestones, and work item IDs: **[docs/roadmap.md](docs/roadmap.md)**.
