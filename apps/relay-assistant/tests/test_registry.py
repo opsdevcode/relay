@@ -1,8 +1,10 @@
 import pytest
 
 from portal_assistant.registry import (
+    DEFAULT_TOOL_DEFINITIONS,
     RegistryConfig,
     RoutingRule,
+    ToolDefinition,
     load_registry_config,
     resolve_tool,
     validate_registry_config,
@@ -37,6 +39,7 @@ def test_validate_registry_rejects_missing_default():
         routing=[
             RoutingRule(tool="docs_search", patterns=(__import__("re").compile("x"),)),
         ],
+        tools=dict(DEFAULT_TOOL_DEFINITIONS),
     )
     errors = validate_registry_config(config)
     assert any("default: true" in err for err in errors)
@@ -46,6 +49,7 @@ def test_validate_registry_rejects_unknown_tool():
     config = RegistryConfig(
         services=[{"id": "x", "tools": ["not_a_real_tool"]}],
         routing=[RoutingRule(tool="not_a_real_tool", default=True)],
+        tools={"not_a_real_tool": ToolDefinition(kind="read")},
     )
     errors = validate_registry_config(config)
     assert any("unknown tool" in err for err in errors)
