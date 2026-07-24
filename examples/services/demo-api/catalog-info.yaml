@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: demo-api
+  description: Demo API golden path example
+  annotations:
+    github.com/project-slug: opsdevcode/demo-api
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team

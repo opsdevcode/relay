@@ -9,7 +9,7 @@ This repository is configured so **only [@erskaggs](https://github.com/erskaggs)
 | **Branch protection / ruleset (`main`)** | PRs required; required checks: `test`, quality, security, commitlint, semantic PR (see `.github/rulesets/main-branch.json`) |
 | **Branch protection (`main`)** | Push may be restricted to maintainer; CODEOWNER review on PRs; no force-push |
 | **CODEOWNERS** | All paths (especially `.github/workflows/`) owned by `erskaggs` |
-| **Actions: allowed actions** | `local_only` — workflows in this repo only, no third-party reusable workflows |
+| **Actions: allowed actions** | `selected` — GitHub-owned + verified partners (`actions/*`, commitlint/semantic PR/scaffold actions); SHA pinning required |
 | **Actions: SHA pinning** | Required — actions must use full commit SHAs |
 | **Actions: `GITHUB_TOKEN`** | Default **read-only** at repo level; write scopes declared per workflow job |
 | **Fork PR workflows** | Disabled where supported; fork PRs never receive repository secrets (GitHub default) |

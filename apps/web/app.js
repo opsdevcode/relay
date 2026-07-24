@@ -1,3 +1,5 @@
+import { renderCitationLinks, renderMarkdown } from "./markdown.js";
+
 const API = window.location.origin.includes("3000")
   ? "http://localhost:8080"
   : "";
@@ -6,13 +8,22 @@ const chat = document.getElementById("chat");
 const form = document.getElementById("composer");
 const input = document.getElementById("input");
 const statusEl = document.getElementById("status");
+const promptsEl = document.getElementById("prompts");
 
 let pendingDraft = null;
 
-function addMessage(role, text, extra = "") {
+const SUGGESTED_PROMPTS = [
+  "What are the required resource tags?",
+  "What platform services are available?",
+  "Create a new service called demo-api",
+  "I need a sandbox for a POC",
+];
+
+function addMessage(role, text, extraHtml = "") {
   const el = document.createElement("div");
   el.className = `msg ${role}`;
-  el.innerHTML = `<div class="meta">${role === "user" ? "You" : "Assistant"}</div>${escapeHtml(text)}${extra}`;
+  const body = role === "assistant" ? renderMarkdown(text) : escapeHtml(text);
+  el.innerHTML = `<div class="meta">${role === "user" ? "You" : "Assistant"}</div><div class="body">${body}</div>${extraHtml}`;
   chat.appendChild(el);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -24,11 +35,22 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;");
 }
 
+function formatDraftLabel(draft) {
+  if (draft.action === "scaffold_service") {
+    const name = draft.inputs?.service_name || draft.service_name || "service";
+    return `Scaffold <strong>${escapeHtml(name)}</strong>`;
+  }
+  if (draft.action === "request_sandbox") {
+    return "Request sandbox";
+  }
+  return escapeHtml(draft.action || "action");
+}
+
 function formatActionResult(data) {
   if (data.workflow_url) {
     const inputs = JSON.stringify(data.inputs || {}, null, 2);
     return (
-      `${escapeHtml(data.message || "")}` +
+      `<div>${renderMarkdown(data.message || "")}</div>` +
       `<div class="draft">` +
       `<a href="${escapeHtml(data.workflow_url)}" target="_blank" rel="noopener">` +
       `Run workflow: ${escapeHtml(data.workflow_name || "Scaffold K8s Service")}</a>` +
@@ -39,7 +61,7 @@ function formatActionResult(data) {
   }
   if (data.issue_url) {
     return (
-      `${escapeHtml(data.message || "")} ` +
+      `<div>${renderMarkdown(data.message || "")}</div>` +
       `<div class="draft"><a href="${escapeHtml(data.issue_url)}" target="_blank" rel="noopener">Open issue template</a></div>`
     );
   }
@@ -51,17 +73,14 @@ async function refreshHealth() {
     const res = await fetch(`${API}/health`);
     const data = await res.json();
     const mode = data.answer_mode === "llm" ? "LLM" : "extractive (no API keys)";
-    statusEl.textContent = `Documents: ${data.documents} · Mode: ${mode}`;
+    const ver = data.version ? ` · v${data.version}` : "";
+    statusEl.textContent = `Documents: ${data.documents} · Mode: ${mode}${ver}`;
   } catch {
     statusEl.textContent = "API unreachable — run make up";
   }
 }
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const message = input.value.trim();
-  if (!message) return;
-
+async function sendMessage(message) {
   addMessage("user", message);
   input.value = "";
   pendingDraft = null;
@@ -76,21 +95,25 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify({ message }),
     });
     const data = await res.json();
-    let extra = "";
-    if (data.citations?.length) {
-      extra += `\n\nSources:\n${data.citations.map((c) => `- ${c.source}`).join("\n")}`;
-    }
+    let extra = renderCitationLinks(data.citations);
     if (data.draft?.requires_confirmation) {
       pendingDraft = data.draft;
-      extra += `<div class="draft"><strong>Draft action:</strong> ${escapeHtml(data.draft.action)}<br/><button type="button" class="confirm-draft">Confirm</button></div>`;
+      extra += `<div class="draft"><strong>Draft:</strong> ${formatDraftLabel(data.draft)}<br/><button type="button" class="confirm-draft">Confirm</button></div>`;
     }
     addMessage("assistant", data.answer, extra);
-    document.querySelector(".confirm-draft")?.addEventListener("click", confirmDraft);
+    chat.querySelector(".confirm-draft")?.addEventListener("click", confirmDraft);
   } catch (err) {
     addMessage("assistant", `Error: ${err.message}`);
   } finally {
     button.disabled = false;
   }
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const message = input.value.trim();
+  if (!message) return;
+  await sendMessage(message);
 });
 
 async function confirmDraft() {
@@ -101,8 +124,25 @@ async function confirmDraft() {
     body: JSON.stringify({ draft: pendingDraft }),
   });
   const data = await res.json();
-  addMessage("assistant", "", formatActionResult(data));
+  const el = document.createElement("div");
+  el.className = "msg assistant";
+  el.innerHTML = `<div class="meta">Assistant</div><div class="body">${formatActionResult(data)}</div>`;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
   pendingDraft = null;
 }
 
+function initPrompts() {
+  if (!promptsEl) return;
+  for (const prompt of SUGGESTED_PROMPTS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "prompt-chip";
+    btn.textContent = prompt;
+    btn.addEventListener("click", () => sendMessage(prompt));
+    promptsEl.appendChild(btn);
+  }
+}
+
+initPrompts();
 refreshHealth();

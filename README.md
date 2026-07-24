@@ -87,8 +87,8 @@ See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](do
 
 | Phase | Scope |
 | --- | --- |
-| **Now** | Local compose, FTS RAG, cited chat, platform-service registry, Actions-only scaffold |
-| **Next** | Demo hardening (Phase 0), then registry-driven agent, hybrid RAG, Backstage slice |
+| **Next** | Phase 1: registry-driven agent, hybrid RAG, Backstage slice |
+| **Now** | Phase 0 demo hardening complete (corpus, UX, demo-api, demo script, CI) |
 | **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
 
 Details, milestones, and work item IDs: **[docs/roadmap.md](docs/roadmap.md)**.

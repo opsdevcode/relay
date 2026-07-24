@@ -39,7 +39,7 @@ What ships in this repo today:
 | Area | Status | Notes |
 | --- | --- | --- |
 | Local stack | Done | Postgres (FTS + pgvector extension), Redis, Portal Assistant, web UI |
-| RAG | Done (FTS) | Auto-ingest on startup; bundled `knowledge/corpus/` (3 sample docs) |
+| RAG | Done (FTS) | Auto-ingest on startup; bundled `knowledge/corpus/` (**15** sample docs) |
 | Answer modes | Done | Extractive (default); optional Anthropic API for synthesis |
 | Chat intents | Done | Regex routing: Q&A, services list, scaffold, sandbox, mock health |
 | Scaffold action | Done | Draft → confirm → GitHub Actions workflow dispatch link |
@@ -105,11 +105,11 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 
 | ID | Work | Exit criteria | Repo touchpoints |
 | --- | --- | --- | --- |
-| 0.1 | Fix scaffold confirm payload | UI confirm passes the same `service_name` the user asked for | `scaffold.py`, `tools.py`, web confirm flow |
-| 0.2 | Expand knowledge corpus | ≥ 15 indexed docs covering onboarding, GitOps, tagging, golden path, SLO basics | `knowledge/corpus/`, `knowledge/sources.yaml` |
-| 0.3 | Web UX polish | Markdown rendering, suggested prompt chips, clickable citations | `apps/web/` |
-| 0.4 | Committed scaffold example | `examples/services/demo-api/` generated from template | template + workflow or manual seed |
-| 0.5 | Demo script | 5-minute presenter walkthrough | `docs/demo-script.md` |
+| 0.1 | Fix scaffold confirm payload | UI confirm passes the same `service_name` the user asked for | `scaffold.py`, `tools.py`, web confirm flow — **done** |
+| 0.2 | Expand knowledge corpus | ≥ 15 indexed docs covering onboarding, GitOps, tagging, golden path, SLO basics | `knowledge/corpus/`, `knowledge/sources.yaml` — **done** |
+| 0.3 | Web UX polish | Markdown rendering, suggested prompt chips, clickable citations | `apps/web/` — **done** |
+| 0.4 | Committed scaffold example | `examples/services/demo-api/` generated from template | template + workflow or manual seed — **done** |
+| 0.5 | Demo script | 5-minute presenter walkthrough | `docs/demo-script.md` — **done** |
 | 0.6 | PR CI | `make ci` on every PR | `.github/workflows/ci.yml` — **done** |
 | 0.7 | Integration test | Chat-shaped draft → confirm preserves `inputs.service_name` | `tests/test_scaffold.py` — **done** |
 
