@@ -1,46 +1,71 @@
-- id: knowledge-standards
-  name: Knowledge & Standards
-  description: RAG Q&A over platform docs, proposals, and standards
-  phase: v1
-  knowledge:
-    sources:
-      - corpus-proposals
-      - corpus-standards
-      - corpus-docs
-  tools:
-    - docs_search
-  views:
-    - techdocs
+# Platform-service registry + chat routing (Phase 1A.1).
+# Extend `services` for catalog metadata; extend `routing` to wire new tools without editing agent.py.
 
-- id: golden-path-scaffold
-  name: Golden Path — K8s Service
-  description: Scaffold a containerized service for any managed Kubernetes cluster
-  phase: v1
-  knowledge:
-    paths:
-      - proposals/platform-overview
-  tools:
-    - scaffold_service
-  views:
-    - scaffolder
+services:
+  - id: knowledge-standards
+    name: Knowledge & Standards
+    description: RAG Q&A over platform docs, proposals, and standards
+    phase: v1
+    knowledge:
+      sources:
+        - corpus-proposals
+        - corpus-standards
+        - corpus-docs
+    tools:
+      - docs_search
+    views:
+      - techdocs
 
-- id: developer-sandbox
-  name: Developer Sandbox
-  description: Self-service sandbox request (GitHub Issue stub for ticket system in prod)
-  phase: v2
-  knowledge:
-    paths:
-      - proposals/platform-overview
-  tools:
-    - request_sandbox
-  views:
-    - catalog
+  - id: golden-path-scaffold
+    name: Golden Path — K8s Service
+    description: Scaffold a containerized service for any managed Kubernetes cluster
+    phase: v1
+    knowledge:
+      paths:
+        - proposals/platform-overview
+    tools:
+      - scaffold_service
+    views:
+      - scaffolder
 
-- id: observability-insight
-  name: Observability Insight
-  description: Service health / SLO read (mock in working model)
-  phase: v1
-  tools:
-    - service_health
-  views:
-    - grafana-embed
+  - id: developer-sandbox
+    name: Developer Sandbox
+    description: Self-service sandbox request (GitHub Issue stub for ticket system in prod)
+    phase: v2
+    knowledge:
+      paths:
+        - proposals/platform-overview
+    tools:
+      - request_sandbox
+    views:
+      - catalog
+
+  - id: observability-insight
+    name: Observability Insight
+    description: Service health / SLO read (mock in working model)
+    phase: v1
+    tools:
+      - service_health
+    views:
+      - grafana-embed
+
+# First matching rule wins. `default: true` must appear on exactly one entry (fallback Q&A).
+routing:
+  - tool: list_platform_services
+    patterns:
+      - "(?i)\\b(platform services|what services|capabilities)\\b"
+
+  - tool: scaffold_service
+    patterns:
+      - "(?i)\\b(create|scaffold|new service|golden path)\\b"
+
+  - tool: request_sandbox
+    patterns:
+      - "(?i)\\b(sandbox|poc|proof of concept)\\b"
+
+  - tool: service_health
+    patterns:
+      - "(?i)\\b(health|slo|alert|how'?s .+ doing)\\b"
+
+  - tool: docs_search
+    default: true
