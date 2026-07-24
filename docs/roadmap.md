@@ -44,7 +44,7 @@ What ships in this repo today:
 | Chat intents | Done | Regex routing: Q&A, services list, scaffold, sandbox, mock health |
 | Scaffold action | Done | Draft → confirm → GitHub Actions workflow dispatch link |
 | Sandbox action | Done | Draft → confirm → GitHub issue template link |
-| Platform registry | Done (YAML) | Four services declared; agent partially hardcoded |
+| Platform registry | Done (YAML) | Four services declared; **registry-driven routing** (1A.1) |
 | K8s manifests | Done (base) | Portal web + assistant; no in-cluster DB/corpus yet |
 | Local testing | Done (baseline) | `make ci`, `make smoke`, `make verify`; see [local-testing.md](local-testing.md) |
 | CI / PR workflow | Done | Repave-style workflows + ruleset JSON + [CONTRIBUTING.md](../CONTRIBUTING.md) |
@@ -84,7 +84,7 @@ Use this table to align **roadmap milestones** with **observed or target** semve
 | --- | --- | --- | --- |
 | **v1.0.0** | 2026-07-24 | **M0** (Phase 0) | First release: local stack, Phase 0 demo hardening, CI/release automation on `main`. |
 | **v1.1.0** | 2026-07-24 | **M0** (Phase 0) | Product rename to **Relay**; paths `relay-assistant` / `relay-web`; no new Phase 1 scope. |
-| **v1.2.0+** | Target | **M1** start (Phase 1) | First releases after Phase 1 work lands (`feat:` minors): registry-driven agent, hybrid RAG, Backstage slice, etc. |
+| **v1.2.0+** | Target (1A.1 landed on `main`) | **M1** start (Phase 1) | Registry-driven agent; next minors track hybrid RAG, Backstage slice, sessions. |
 | **v2.0.0** | Target | **M2** (Phase 2) | Reserved for **breaking** deploy or API changes when **v1 pilot complete** (governed actions, auth, real observability). Only required if integrators must change config or contracts. |
 | **v2.x / v3.0.0** | Target | **M3** (Phase 3) | Org rollout: Teams/Slack, production K8s ops, broader registry; major bump only if breaking. |
 
@@ -172,7 +172,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 1A.1 | Registry-driven tool dispatch | Intents and tool metadata loaded from `registry.yaml`; adding a registry entry is the primary extension path |
+| 1A.1 | Registry-driven tool dispatch | Intents and tool metadata loaded from `registry.yaml`; adding a registry entry is the primary extension path — **done** |
 | 1A.2 | LangGraph (or structured tool graph) | Replace regex-only routing for tool calls; deterministic graphs on write paths |
 | 1A.3 | Redis sessions | Thread ID + short history; follow-up refinement (“call it payments-api”) |
 | 1A.4 | Registry UI | Sidebar or cards from `/platform-services` with “try this” prompts |
@@ -316,11 +316,12 @@ Each new capability should ship: registry entry, knowledge paths (if any), tool 
 When adding a capability (edit `packages/platform-services/registry.yaml` and implement wiring):
 
 1. **Register** — `id`, `name`, `description`, `phase` (`v1` / `v2` / `v3`).
-2. **Knowledge** — list corpus sources or paths; ensure `knowledge/sources.yaml` includes them.
-3. **Tools** — implement handler; return draft with `requires_confirmation: true` for writes.
-4. **Views** — declare `techdocs`, `scaffolder`, `grafana-embed`, or `catalog`; implement in Backstage or web as appropriate.
-5. **Tests** — intent or API test + eval question if RAG-backed.
-6. **Docs** — one paragraph in corpus or `docs/` describing when to use the capability.
+2. **Routing** — add a `routing:` rule (regex `patterns`) or rely on `docs_search` default for Q&A-only tools.
+3. **Knowledge** — list corpus sources or paths; ensure `knowledge/sources.yaml` includes them.
+4. **Tools** — implement handler in `portal_assistant.tools.dispatch_tool`; register id in `REGISTERED_TOOL_IDS`.
+5. **Views** — declare `techdocs`, `scaffolder`, `grafana-embed`, or `catalog`; implement in Backstage or web as appropriate.
+6. **Tests** — intent or API test + eval question if RAG-backed (`tests/test_registry.py` validates YAML).
+7. **Docs** — one paragraph in corpus or `docs/` describing when to use the capability.
 
 Current registered services (working model):
 
@@ -383,12 +384,13 @@ Current registered services (working model):
 
 ## Quick reference — what to build next
 
-If you are picking up work today, the recommended order is:
+Recommended order after Phase 0:
 
-1. Phase **0.1** scaffold confirm fix  
-2. Phase **0.2** corpus expansion  
-3. Phase **0.3** web UX  
-4. Phase **0.6** CI workflow  
-5. Phase **1A.1** registry-driven agent  
+1. Phase **1A.2** LangGraph (or structured tool graph) — replace regex-only routing with a deterministic graph on write paths  
+2. Phase **1A.3** Redis sessions — thread ID + short history for follow-ups  
+3. Phase **1B.1** Hybrid retrieval — embeddings + FTS rank fusion  
+4. Phase **1A.4** Registry UI — sidebar/cards from `/platform-services` with “try this” prompts  
 
-That sequence maximizes demo impact while unlocking extensibility for everything after.
+Phase **1A.1** (registry-driven dispatch) is on `main`: chat routing lives in
+`packages/platform-services/registry.yaml` under `routing:`; handlers in
+`portal_assistant.tools.dispatch_tool`.

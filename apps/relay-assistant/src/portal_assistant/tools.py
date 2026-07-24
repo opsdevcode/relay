@@ -1,19 +1,15 @@
 from __future__ import annotations
 
-from pathlib import Path
+import re
 
-import yaml
-
+from portal_assistant.llm import synthesize
+from portal_assistant.registry import load_registry_config
 from portal_assistant.scaffold import build_workflow_dispatch
+from portal_assistant.store import DocumentStore
 
 
 def load_registry() -> list[dict]:
-    path = Path(__file__).resolve().parents[4] / "packages" / "platform-services" / "registry.yaml"
-    if not path.exists():
-        return []
-    with path.open(encoding="utf-8") as handle:
-        data = yaml.safe_load(handle) or []
-    return data if isinstance(data, list) else []
+    return load_registry_config().services
 
 
 def list_platform_services() -> str:
@@ -30,8 +26,23 @@ def list_platform_services() -> str:
     return "\n".join(lines)
 
 
+def extract_service_name(message: str) -> str:
+    quoted = re.search(r"['\"]([^'\"]+)['\"]", message)
+    if quoted:
+        return slugify_name(quoted.group(1))
+    tokens = re.findall(r"\b[a-z][a-z0-9-]{2,}\b", message.lower())
+    skip = {"create", "service", "scaffold", "called", "named", "new", "the", "for", "please"}
+    for token in tokens:
+        if token not in skip:
+            return str(token)
+    return "demo-service"
+
+
+def slugify_name(name: str) -> str:
+    return re.sub(r"[^a-z0-9-]+", "-", name.lower()).strip("-") or "demo-service"
+
+
 def service_health(service_name: str) -> dict:
-    # Mock for working model — swap for Grafana/VM integration in prod
     return {
         "service": service_name,
         "status": "mock",
@@ -61,4 +72,44 @@ def draft_sandbox_request(purpose: str, budget: str = "500") -> dict:
             "Confirm to file a GitHub Issue (ticket-system intake in production)."
         ),
         "requires_confirmation": True,
+    }
+
+
+async def dispatch_tool(tool_id: str, message: str, store: DocumentStore) -> dict:
+    if tool_id == "list_platform_services":
+        return {"answer": list_platform_services(), "citations": [], "draft": None}
+
+    if tool_id == "scaffold_service":
+        name = extract_service_name(message)
+        draft = draft_scaffold(name)
+        return {"answer": draft["message"], "citations": [], "draft": draft}
+
+    if tool_id == "request_sandbox":
+        draft = draft_sandbox_request(message[:200])
+        return {"answer": draft["message"], "citations": [], "draft": draft}
+
+    if tool_id == "service_health":
+        name = extract_service_name(message)
+        health = service_health(name)
+        return {
+            "answer": (
+                f"**{health['service']}** (mock insight)\n"
+                f"- SLO target: {health['slo']['target']}\n"
+                f"- Burn rate: {health['slo']['burn_rate']}\n"
+                f"- {health['note']}"
+            ),
+            "citations": [],
+            "draft": None,
+        }
+
+    if tool_id == "docs_search":
+        hits = store.search(message)
+        citations = [{"source": h["source"], "title": h["title"]} for h in hits]
+        answer = await synthesize(message, hits)
+        return {"answer": answer, "citations": citations, "draft": None}
+
+    return {
+        "answer": f"Unknown tool '{tool_id}' — check platform-service registry routing.",
+        "citations": [],
+        "draft": None,
     }

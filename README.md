@@ -87,7 +87,7 @@ See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](do
 
 | Phase | Scope |
 | --- | --- |
-| **Next** | Phase 1: registry-driven agent, hybrid RAG, Backstage slice |
+| **Next** | Phase 1: hybrid RAG, Backstage slice, Redis sessions (1A.1 registry routing done) |
 | **Now** | Phase 0 demo hardening complete (corpus, UX, demo-api, demo script, CI) |
 | **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
 
