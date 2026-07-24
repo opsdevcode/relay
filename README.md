@@ -92,3 +92,11 @@ See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](do
 | **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
 
 Details, milestones, and work item IDs: **[docs/roadmap.md](docs/roadmap.md)**.
+
+## Releases
+
+Version tags (`vX.Y.Z`) and GitHub Releases are automated from
+[Conventional Commits](https://www.conventionalcommits.org/) on `main` via
+[python-semantic-release](https://python-semantic-release.readthedocs.io/).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for commit types, semver bumps, and the
+`PORTAL_RELEASE_TOKEN` secret.
