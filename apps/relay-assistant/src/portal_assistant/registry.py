@@ -20,6 +20,38 @@ REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
 
 
 @dataclass(frozen=True)
+class ToolDefinition:
+    kind: str = "read"
+    requires_confirmation: bool = False
+
+
+DEFAULT_TOOL_DEFINITIONS: dict[str, ToolDefinition] = {
+    "docs_search": ToolDefinition(kind="read"),
+    "list_platform_services": ToolDefinition(kind="read"),
+    "service_health": ToolDefinition(kind="read"),
+    "scaffold_service": ToolDefinition(kind="write", requires_confirmation=True),
+    "request_sandbox": ToolDefinition(kind="write", requires_confirmation=True),
+}
+
+
+def _parse_tools(raw: dict[str, Any] | None) -> dict[str, ToolDefinition]:
+    tools = dict(DEFAULT_TOOL_DEFINITIONS)
+    if not raw:
+        return tools
+    for tool_id, entry in raw.items():
+        if not isinstance(entry, dict):
+            continue
+        kind = str(entry.get("kind") or "read").strip().lower()
+        if kind not in {"read", "write"}:
+            kind = "read"
+        tools[str(tool_id)] = ToolDefinition(
+            kind=kind,
+            requires_confirmation=bool(entry.get("requires_confirmation")),
+        )
+    return tools
+
+
+@dataclass(frozen=True)
 class RoutingRule:
     tool: str
     patterns: tuple[re.Pattern[str], ...] = ()
@@ -30,6 +62,13 @@ class RoutingRule:
 class RegistryConfig:
     services: list[dict[str, Any]]
     routing: list[RoutingRule]
+    tools: dict[str, ToolDefinition]
+
+    def tool_definition(self, tool_id: str) -> ToolDefinition:
+        return self.tools.get(tool_id, ToolDefinition(kind="read"))
+
+    def is_write_tool(self, tool_id: str) -> bool:
+        return self.tool_definition(tool_id).kind == "write"
 
 
 def registry_path() -> Path:
@@ -39,16 +78,20 @@ def registry_path() -> Path:
 def load_registry_config(path: Path | None = None) -> RegistryConfig:
     reg_path = path or registry_path()
     if not reg_path.exists():
-        return RegistryConfig(services=[], routing=[])
+        return RegistryConfig(services=[], routing=[], tools=_parse_tools(None))
 
     with reg_path.open(encoding="utf-8") as handle:
         raw = yaml.safe_load(handle)
 
     if isinstance(raw, list):
-        return RegistryConfig(services=raw, routing=_legacy_routing_from_agent())
+        return RegistryConfig(
+            services=raw,
+            routing=_legacy_routing_from_agent(),
+            tools=_parse_tools(None),
+        )
 
     if not isinstance(raw, dict):
-        return RegistryConfig(services=[], routing=[])
+        return RegistryConfig(services=[], routing=[], tools=_parse_tools(None))
 
     services = raw.get("services") or []
     if not isinstance(services, list):
@@ -72,7 +115,10 @@ def load_registry_config(path: Path | None = None) -> RegistryConfig:
             )
         )
 
-    return RegistryConfig(services=services, routing=routing)
+    tools_raw = raw.get("tools")
+    tools = _parse_tools(tools_raw if isinstance(tools_raw, dict) else None)
+
+    return RegistryConfig(services=services, routing=routing, tools=tools)
 
 
 def _legacy_routing_from_agent() -> list[RoutingRule]:
@@ -133,6 +179,12 @@ def validate_registry_config(config: RegistryConfig) -> list[str]:
 
         if not rule.default and not rule.patterns:
             errors.append(f"routing tool {rule.tool} needs patterns or default: true")
+
+    for tool_id, definition in config.tools.items():
+        if tool_id not in REGISTERED_TOOL_IDS:
+            errors.append(f"tools catalog references unknown handler: {tool_id}")
+        if definition.kind == "write" and not definition.requires_confirmation:
+            errors.append(f"write tool {tool_id} must set requires_confirmation: true")
 
     service_tools: set[str] = set()
     for svc in config.services:

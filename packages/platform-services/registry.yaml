@@ -1,6 +1,7 @@
 # Platform-service registry + chat routing (Phase 1A.1).
 # Extend `services` for catalog metadata; extend `routing` to wire new tools without editing agent.py.
 # Optional `prompts` per service feed the web UI (Phase 1A.4).
+# `tools` catalog defines read vs write paths for the chat graph (Phase 1A.2).
 
 services:
   - id: knowledge-standards
@@ -79,3 +80,17 @@ routing:
 
   - tool: docs_search
     default: true
+
+tools:
+  docs_search:
+    kind: read
+  list_platform_services:
+    kind: read
+  service_health:
+    kind: read
+  scaffold_service:
+    kind: write
+    requires_confirmation: true
+  request_sandbox:
+    kind: write
+    requires_confirmation: true

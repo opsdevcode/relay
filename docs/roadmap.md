@@ -174,7 +174,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | ID | Work | Exit criteria |
 | --- | --- | --- |
 | 1A.1 | Registry-driven tool dispatch | Intents and tool metadata loaded from `registry.yaml`; adding a registry entry is the primary extension path — **done** |
-| 1A.2 | LangGraph (or structured tool graph) | Replace regex-only routing for tool calls; deterministic graphs on write paths |
+| 1A.2 | Structured tool graph | Write tools run through `run_chat_graph` with draft-only guard — **done** |
 | 1A.3 | Redis sessions | Thread ID + short history; follow-up refinement (“call it payments-api”) — **done** |
 | 1A.4 | Registry UI | Sidebar or cards from `/platform-services` with “try this” prompts — **done** (web loads `prompts` from registry) |
 
@@ -320,9 +320,10 @@ When adding a capability (edit `packages/platform-services/registry.yaml` and im
 2. **Routing** — add a `routing:` rule (regex `patterns`) or rely on `docs_search` default for Q&A-only tools.
 3. **Knowledge** — list corpus sources or paths; ensure `knowledge/sources.yaml` includes them.
 4. **Tools** — implement handler in `portal_assistant.tools.dispatch_tool`; register id in `REGISTERED_TOOL_IDS`.
-5. **Views** — declare `techdocs`, `scaffolder`, `grafana-embed`, or `catalog`; implement in Backstage or web as appropriate.
-6. **Tests** — intent or API test + eval question if RAG-backed (`tests/test_registry.py` validates YAML).
-7. **Docs** — one paragraph in corpus or `docs/` describing when to use the capability.
+5. **Tool kind** — declare `kind: read|write` under `tools:`; write tools require `requires_confirmation: true`.
+6. **Views** — declare `techdocs`, `scaffolder`, `grafana-embed`, or `catalog`; implement in Backstage or web as appropriate.
+7. **Tests** — intent or API test + eval question if RAG-backed (`tests/test_registry.py` validates YAML).
+8. **Docs** — one paragraph in corpus or `docs/` describing when to use the capability.
 
 Current registered services (working model):
 
@@ -387,9 +388,9 @@ Current registered services (working model):
 
 Recommended order after Phase 0:
 
-1. Phase **1A.2** LangGraph (or structured tool graph) — deterministic graph on write paths  
-2. Phase **1B.2** Corpus pipeline — Git/webhook re-index  
+1. Phase **1B.2** Corpus pipeline — documented ingest from Git; re-index job or webhook  
+2. Phase **1C.1** Minimal Backstage app — catalog imports `catalog/entities/`  
 
-Phase **1A.1**, **1A.3**, **1A.4**, and **1B.1** are on `main`.
-Routing: `packages/platform-services/registry.yaml` → `portal_assistant.tools.dispatch_tool`.
-Web prompts: optional `prompts` per service in the same file, loaded via `/platform-services`.
+Phase **1A.1–1A.4**, **1A.2** (write-path graph), and **1B.1** are on `main`.
+Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
+Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
