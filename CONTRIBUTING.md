@@ -150,6 +150,20 @@ Org scope (optional):
 gh secret set PORTAL_RELEASE_TOKEN --org opsdevcode --visibility private
 ```
 
+### Releases not showing up?
+
+1. **Secret missing** — The Release job fails immediately if `PORTAL_RELEASE_TOKEN` is unset.
+   Check: `gh secret list --repo opsdevcode/ai-developer-portal` (name must appear).
+   Use the same PAT pattern as repave’s `REPAVE_RELEASE_TOKEN` if you already have one.
+2. **Re-run after adding the secret** — Merges do not retry automatically:
+
+```bash
+gh workflow run Release --repo opsdevcode/ai-developer-portal --ref main
+```
+
+3. **Commit type** — Only `feat` / `fix` / breaking commits since the last tag produce a bump.
+   The PR #1 squash title was `ci:` (no release). PR #2 was `feat:` (should release **v0.2.0** once the workflow succeeds).
+
 ## Pull requests
 
 - Use the [pull request template](.github/pull_request_template.md).

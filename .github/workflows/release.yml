@@ -22,16 +22,11 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/portal-assistant
     steps:
       - name: Require release token
-        env:
-          PORTAL_RELEASE_TOKEN: ${{ secrets.PORTAL_RELEASE_TOKEN }}
         run: |
-          if [ -z "$PORTAL_RELEASE_TOKEN" ]; then
-            echo "::error::PORTAL_RELEASE_TOKEN is not set. Add a maintainer PAT with contents:write — see CONTRIBUTING.md"
+          if [ -z "${{ secrets.PORTAL_RELEASE_TOKEN }}" ]; then
+            echo "::error::PORTAL_RELEASE_TOKEN is not set. Run: gh secret set PORTAL_RELEASE_TOKEN --repo opsdevcode/ai-developer-portal"
             exit 1
           fi
 
@@ -45,16 +40,19 @@ jobs:
           python-version: "3.12"
 
       - name: Install portal-assistant and semantic-release
+        working-directory: apps/portal-assistant
         run: |
           pip install --no-cache-dir -e ".[dev]"
           pip install "python-semantic-release~=10.0"
 
       - name: Run tests
+        working-directory: apps/portal-assistant
         env:
           PYTHONPATH: src
         run: python -m pytest -q
 
       - name: Create GitHub release on conventional commits
+        working-directory: apps/portal-assistant
         env:
           GH_TOKEN: ${{ secrets.PORTAL_RELEASE_TOKEN }}
         run: semantic-release version
