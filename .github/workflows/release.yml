@@ -10,6 +10,7 @@ on:
       - "LICENSE"
       - ".github/pull_request_template.md"
       - "CHANGELOG.md"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,12 +26,21 @@ jobs:
       run:
         working-directory: apps/portal-assistant
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Require release token
+        env:
+          PORTAL_RELEASE_TOKEN: ${{ secrets.PORTAL_RELEASE_TOKEN }}
+        run: |
+          if [ -z "$PORTAL_RELEASE_TOKEN" ]; then
+            echo "::error::PORTAL_RELEASE_TOKEN is not set. Add a maintainer PAT with contents:write — see CONTRIBUTING.md"
+            exit 1
+          fi
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           token: ${{ secrets.PORTAL_RELEASE_TOKEN }}
 
-      - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: "3.12"
 
