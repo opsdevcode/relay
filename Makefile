@@ -1,6 +1,7 @@
-.PHONY: bootstrap up down logs ingest install test test-local lint format typecheck security quality smoke verify ci build-k8s
+.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test
 
 PA := apps/relay-assistant
+BS := apps/backstage
 
 bootstrap:
 	@test -f .env || cp .env.example .env
@@ -20,6 +21,10 @@ logs:
 ingest:
 	docker compose -f deploy/docker-compose.yml exec relay-assistant \
 		python -m rag_ingestion.cli ingest
+
+ingest-full:
+	docker compose -f deploy/docker-compose.yml exec relay-assistant \
+		python -m rag_ingestion.cli ingest --full
 
 lint:
 	cd $(PA) && ruff check src tests
@@ -53,6 +58,15 @@ verify: test-docker smoke
 
 # Full gate before PR (host tests + quality + security; stack optional for smoke).
 ci: quality security test-local
+
+backstage-install:
+	cd $(BS) && yarn install --immutable
+
+backstage-dev:
+	cd $(BS) && yarn start
+
+backstage-test:
+	cd $(BS) && CI=true yarn test --passWithNoTests --watchAll=false
 
 build-k8s:
 	docker build -t ghcr.io/opsdevcode/relay-assistant:local apps/relay-assistant

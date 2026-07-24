@@ -1,52 +1,68 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from glob import glob
 from pathlib import Path
-
-import yaml
 
 from portal_assistant.chunking import chunk_markdown
 from portal_assistant.config import settings
 from portal_assistant.store import DocumentStore
+from rag_ingestion.sources import (
+    chunk_settings,
+    default_config_path,
+    load_sources,
+    validate_sources,
+)
+from rag_ingestion.sync import resolve_source_root
+
+logger = logging.getLogger(__name__)
 
 
-def load_sources(config_path: Path) -> list[dict]:
-    with config_path.open(encoding="utf-8") as handle:
-        data = yaml.safe_load(handle) or {}
-    sources = data.get("sources", [])
-    return sources if isinstance(sources, list) else []
+def ingest(
+    config_path: Path | None = None,
+    *,
+    store: DocumentStore | None = None,
+    full: bool = False,
+    checkout_root: Path | None = None,
+    knowledge_path: str | None = None,
+) -> int:
+    """Index markdown sources into Postgres.
 
+    When ``full`` is true, existing documents are deleted first so removed files
+    do not leave stale chunks. Git sources are synced under ``checkout_root``
+    before globbing.
+    """
+    cfg = config_path or default_config_path(knowledge_path)
+    sources = load_sources(cfg)
+    validate_sources(sources)
+    size, overlap = chunk_settings(cfg)
 
-def resolve_base(path: str) -> Path:
-    if path.startswith("/"):
-        return Path(path)
-    return Path(settings.knowledge_path) / path.lstrip("/")
+    doc_store = store or DocumentStore(settings.database_url)
+    doc_store.init_schema()
+    if full:
+        deleted = doc_store.delete_all()
+        logger.info("Full reindex: deleted %s existing documents", deleted)
+        print(f"full reindex — deleted {deleted} existing documents")
 
-
-def ingest(config_path: Path | None = None) -> int:
-    if config_path is None:
-        candidates = [
-            Path(settings.knowledge_path).parent / "sources.yaml",
-            Path("/app/knowledge/sources.yaml"),
-            Path(__file__).resolve().parents[4] / "knowledge" / "sources.yaml",
-        ]
-        cfg = next((p for p in candidates if p.is_file()), candidates[-1])
-    else:
-        cfg = config_path
-    chunk_cfg = yaml.safe_load(cfg.read_text(encoding="utf-8")) if cfg.exists() else {}
-    size = chunk_cfg.get("chunk", {}).get("size", 1200)
-    overlap = chunk_cfg.get("chunk", {}).get("overlap", 200)
-
-    store = DocumentStore(settings.database_url)
-    store.init_schema()
+    kp = knowledge_path or settings.knowledge_path
+    checkout = checkout_root or Path(settings.ingest_checkout_dir)
 
     total = 0
-    for source in load_sources(cfg):
-        base = resolve_base(source["path"])
+    for source in sources:
+        base = resolve_source_root(
+            source,
+            knowledge_path=kp,
+            checkout_root=checkout,
+        )
         pattern = str(base / source.get("glob", "**/*.md"))
         visibility = source.get("visibility", "public")
-        for file_path in sorted(glob(pattern, recursive=True)):
+        name = source.get("name", base.name)
+        matched = sorted(glob(pattern, recursive=True))
+        if not matched:
+            logger.warning("No files matched for source %s (%s)", name, pattern)
+            print(f"warning: no files matched for {name} ({pattern})")
+        for file_path in matched:
             path = Path(file_path)
             if not path.is_file():
                 continue
@@ -56,10 +72,10 @@ def ingest(config_path: Path | None = None) -> int:
             chunks = chunk_markdown(text, rel, title, size=size, overlap=overlap)
             for chunk in chunks:
                 chunk.visibility = visibility
-            total += store.upsert_chunks(chunks)
+            total += doc_store.upsert_chunks(chunks)
             print(f"indexed {rel} ({len(chunks)} chunks)")
 
-    print(f"done — {store.count()} documents in store")
+    print(f"done — {doc_store.count()} documents in store")
     return total
 
 
@@ -67,10 +83,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest knowledge sources")
     parser.add_argument("--config", type=Path, default=None)
     sub = parser.add_subparsers(dest="cmd")
-    sub.add_parser("ingest")
+    ingest_parser = sub.add_parser("ingest", help="Index configured knowledge sources")
+    ingest_parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Delete all documents before indexing (drops stale chunks)",
+    )
     args = parser.parse_args()
     if args.cmd == "ingest":
-        ingest(args.config)
+        ingest(args.config, full=bool(args.full))
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,12 @@
+from pathlib import Path
+from tempfile import gettempdir
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _default_ingest_checkout_dir() -> str:
+    return str(Path(gettempdir()) / "relay-corpus-checkouts")
 
 
 class Settings(BaseSettings):
@@ -14,6 +22,8 @@ class Settings(BaseSettings):
     embedding_dimensions: int = 384
     web_origin: str = "http://localhost:3000"
     knowledge_path: str = "/knowledge"
+    ingest_checkout_dir: str = Field(default_factory=_default_ingest_checkout_dir)
+    ingest_webhook_secret: str = ""
     github_org: str = "opsdevcode"
     github_repo: str = "opsdevcode/relay"
 

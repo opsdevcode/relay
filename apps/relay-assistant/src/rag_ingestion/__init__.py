@@ -1,1 +1,1 @@
-"""RAG ingestion: index markdown knowledge sources into Postgres FTS."""
+"""RAG ingestion: index filesystem and git knowledge sources into Postgres."""

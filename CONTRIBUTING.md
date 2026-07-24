@@ -6,7 +6,10 @@ Thanks for your interest in this working model. The goal is a **local-first**, *
 
 - **Draft-and-route only.** Do not add paths that mutate production (or GitHub) without human confirmation.
 - **No secrets in the repo.** Use gitignored `.env` locally; never commit API keys or PATs.
-- **Local testing is mandatory.** New behavior ships with tests and must pass `make ci` (see [`docs/local-testing.md`](docs/local-testing.md)).
+- **Local testing is mandatory.** Every new feature or fix ships with tests in the
+  same PR (unit and/or wiring coverage). Changes must pass `make ci`. See
+  [`docs/local-testing.md`](docs/local-testing.md). Do not merge `feat:` / `fix:`
+  work and plan tests as follow-up.
 - **Pin Actions to SHAs.** Third-party actions in workflows must use full commit SHAs (see existing workflows).
 
 ## Development
@@ -18,6 +21,7 @@ make install      # pip install -e apps/relay-assistant[dev]
 make up           # Docker stack — no API keys required
 make ci             # ruff + mypy + bandit + pip-audit + pytest (host)
 make smoke          # HTTP smoke (requires make up)
+make backstage-install && make backstage-dev   # catalog UI on :3001 (Node 22+)
 ```
 
 Or only unit tests:

@@ -1,0 +1,41 @@
+name: Backstage
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backstage/**"
+      - "catalog/entities/**"
+      - ".github/workflows/backstage.yml"
+  pull_request:
+    paths:
+      - "apps/backstage/**"
+      - "catalog/entities/**"
+      - ".github/workflows/backstage.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backstage
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Unit tests
+        run: yarn test --passWithNoTests --watchAll=false
+        env:
+          CI: true

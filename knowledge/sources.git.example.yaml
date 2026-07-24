@@ -1,0 +1,26 @@
+# Example: mix bundled filesystem corpus with a Git standards repo.
+# Copy entries into sources.yaml (or pass --config) after adjusting url/ref.
+#
+#   python -m rag_ingestion.cli --config /path/to/this-file.yaml ingest --full
+
+sources:
+  - name: corpus-proposals
+    path: /knowledge/proposals
+    glob: "**/*.md"
+    visibility: public
+  - name: corpus-docs
+    path: /knowledge/docs
+    glob: "**/*.md"
+    visibility: public
+  - name: platform-standards
+    type: git
+    url: https://github.com/example-org/platform-standards.git
+    ref: main
+    # Doc-as-code / published tree inside the repo:
+    subdir: docs
+    glob: "**/*.md"
+    visibility: public
+
+chunk:
+  size: 1200
+  overlap: 200
