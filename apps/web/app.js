@@ -12,7 +12,7 @@ const promptsEl = document.getElementById("prompts");
 
 let pendingDraft = null;
 
-const SUGGESTED_PROMPTS = [
+const FALLBACK_PROMPTS = [
   "What are the required resource tags?",
   "What platform services are available?",
   "Create a new service called demo-api",
@@ -132,15 +132,64 @@ async function confirmDraft() {
   pendingDraft = null;
 }
 
-function initPrompts() {
+function renderPromptChip(message, label) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "prompt-chip";
+  btn.textContent = message;
+  if (label) {
+    btn.title = label;
+    btn.setAttribute("aria-label", `${message} (${label})`);
+  }
+  btn.addEventListener("click", () => sendMessage(message));
+  return btn;
+}
+
+function renderPromptGroups(services) {
+  promptsEl.replaceChildren();
+  const list = Array.isArray(services) ? services : [];
+
+  const withPrompts = list.filter((svc) => Array.isArray(svc.prompts) && svc.prompts.length);
+  if (!withPrompts.length) {
+    for (const prompt of FALLBACK_PROMPTS) {
+      promptsEl.appendChild(renderPromptChip(prompt));
+    }
+    return;
+  }
+
+  const overview = document.createElement("button");
+  overview.type = "button";
+  overview.className = "prompt-chip prompt-chip-meta";
+  overview.textContent = "What platform services are available?";
+  overview.addEventListener("click", () => sendMessage(overview.textContent));
+  promptsEl.appendChild(overview);
+
+  for (const svc of withPrompts) {
+    const group = document.createElement("div");
+    group.className = "prompt-group";
+    const heading = document.createElement("div");
+    heading.className = "prompt-group-label";
+    heading.textContent = svc.name || svc.id;
+    group.appendChild(heading);
+    const row = document.createElement("div");
+    row.className = "prompt-group-chips";
+    for (const prompt of svc.prompts) {
+      row.appendChild(renderPromptChip(prompt, svc.name));
+    }
+    group.appendChild(row);
+    promptsEl.appendChild(group);
+  }
+}
+
+async function initPrompts() {
   if (!promptsEl) return;
-  for (const prompt of SUGGESTED_PROMPTS) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "prompt-chip";
-    btn.textContent = prompt;
-    btn.addEventListener("click", () => sendMessage(prompt));
-    promptsEl.appendChild(btn);
+  try {
+    const res = await fetch(`${API}/platform-services`);
+    if (!res.ok) throw new Error("platform-services");
+    const services = await res.json();
+    renderPromptGroups(services);
+  } catch {
+    renderPromptGroups([]);
   }
 }
 

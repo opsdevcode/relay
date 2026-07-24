@@ -131,8 +131,27 @@ button:disabled { opacity: 0.6; cursor: wait; }
 
 .prompts {
   display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.prompt-group-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+}
+
+.prompt-group-chips {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+button.prompt-chip-meta {
+  align-self: flex-start;
+  border: 1px solid #334155;
 }
 
 button.prompt-chip {
