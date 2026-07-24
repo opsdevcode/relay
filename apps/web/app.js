@@ -11,6 +11,8 @@ const statusEl = document.getElementById("status");
 const promptsEl = document.getElementById("prompts");
 
 let pendingDraft = null;
+const THREAD_KEY = "relay_thread_id";
+let threadId = sessionStorage.getItem(THREAD_KEY) || null;
 
 const FALLBACK_PROMPTS = [
   "What are the required resource tags?",
@@ -89,12 +91,18 @@ async function sendMessage(message) {
   button.disabled = true;
 
   try {
+    const payload = { message };
+    if (threadId) payload.thread_id = threadId;
     const res = await fetch(`${API}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
+    if (data.thread_id) {
+      threadId = data.thread_id;
+      sessionStorage.setItem(THREAD_KEY, threadId);
+    }
     let extra = renderCitationLinks(data.citations);
     if (data.draft?.requires_confirmation) {
       pendingDraft = data.draft;

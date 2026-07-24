@@ -51,6 +51,7 @@ What ships in this repo today:
 | Backstage | Planned | `apps/backstage/README.md` placeholder |
 | Teams / Slack | Planned | Same API; adapters not built |
 | Semantic RAG | Not started | pgvector installed; embeddings unused |
+| Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
 | Auth | Not started | Open API in local demo |
 | Real observability | Not started | `service_health` returns mock data |
 
@@ -174,7 +175,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | --- | --- | --- |
 | 1A.1 | Registry-driven tool dispatch | Intents and tool metadata loaded from `registry.yaml`; adding a registry entry is the primary extension path — **done** |
 | 1A.2 | LangGraph (or structured tool graph) | Replace regex-only routing for tool calls; deterministic graphs on write paths |
-| 1A.3 | Redis sessions | Thread ID + short history; follow-up refinement (“call it payments-api”) |
+| 1A.3 | Redis sessions | Thread ID + short history; follow-up refinement (“call it payments-api”) — **done** |
 | 1A.4 | Registry UI | Sidebar or cards from `/platform-services` with “try this” prompts — **done** (web loads `prompts` from registry) |
 
 ### Workstream 1B — RAG
@@ -387,9 +388,8 @@ Current registered services (working model):
 Recommended order after Phase 0:
 
 1. Phase **1A.2** LangGraph (or structured tool graph) — replace regex-only routing with a deterministic graph on write paths  
-2. Phase **1A.3** Redis sessions — thread ID + short history for follow-ups  
-3. Phase **1B.1** Hybrid retrieval — embeddings + FTS rank fusion  
+2. Phase **1B.1** Hybrid retrieval — embeddings + FTS rank fusion  
 
-Phase **1A.1** (registry-driven dispatch) and **1A.4** (registry prompt chips) are on `main`.
+Phase **1A.1**, **1A.3**, and **1A.4** are on `main` (registry routing, Redis sessions, prompt chips).
 Routing: `packages/platform-services/registry.yaml` → `portal_assistant.tools.dispatch_tool`.
 Web prompts: optional `prompts` per service in the same file, loaded via `/platform-services`.
