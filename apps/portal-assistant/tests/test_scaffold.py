@@ -18,3 +18,14 @@ def test_build_workflow_dispatch():
 def test_invalid_service_name():
     with pytest.raises(ValueError):
         normalize_service_name("!!!")
+
+
+def test_confirm_scaffold_draft_uses_chat_draft_shape():
+    """Draft from /chat stores service_name under inputs (same as build_workflow_dispatch)."""
+    from portal_assistant.scaffold import confirm_scaffold_draft
+    from portal_assistant.tools import draft_scaffold
+
+    draft = draft_scaffold("payments-api", "Payments service")
+    result = confirm_scaffold_draft(draft)
+    assert result["inputs"]["service_name"] == "payments-api"
+    assert "payments-api" in result["message"]

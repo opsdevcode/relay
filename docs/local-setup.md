@@ -2,6 +2,8 @@
 
 For the full product roadmap (phases, milestones, platform services), see [roadmap.md](roadmap.md).
 
+For **local testing** (`make ci`, `make smoke`, `make verify`), see [local-testing.md](local-testing.md).
+
 ## Prerequisites
 
 - Docker Desktop (or Docker Engine + Compose v2)

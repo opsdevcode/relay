@@ -47,8 +47,13 @@ def build_workflow_dispatch(service_name: str, description: str = "") -> dict:
 
 
 def confirm_scaffold_draft(draft: dict) -> dict:
-    service_name = draft.get("service_name") or "demo-service"
-    description = draft.get("description") or ""
+    inputs = draft.get("inputs") or {}
+    service_name = (
+        draft.get("service_name")
+        or inputs.get("service_name")
+        or "demo-service"
+    )
+    description = draft.get("description") or inputs.get("description") or ""
     payload = build_workflow_dispatch(service_name, description)
     return {
         "status": "workflow_dispatch",

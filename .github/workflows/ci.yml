@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install portal-assistant (dev)
+        run: pip install --no-cache-dir -e "./apps/portal-assistant[dev]"
+
+      - name: Unit tests (no API keys, no Docker)
+        run: make ci

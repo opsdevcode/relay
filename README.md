@@ -10,11 +10,15 @@ No API keys required — answers use **extractive mode** from the bundled docs.
 
 ```bash
 make up          # creates .env from .env.example if missing, starts stack, auto-indexes
+make ci          # unit tests — no Docker, no API keys (same as CI)
 open http://localhost:3000
-make smoke       # optional sanity check
+make smoke       # HTTP end-to-end check (stack must be running)
+make verify      # unit tests in container + smoke
 ```
 
 Optional: set `ANTHROPIC_API_KEY` in `.env` for synthesized LLM answers instead of extractive excerpts.
+
+**Local testing** is a first-class deliverable: [docs/local-testing.md](docs/local-testing.md).
 
 API: http://localhost:8080 · Health: http://localhost:8080/health
 
@@ -75,7 +79,7 @@ Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend 
 | Storage | `standard` StorageClass | Set per cluster in overlay |
 | Images | GHCR (`ghcr.io/opsdevcode/...`) | Same — any registry |
 
-See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md) · **[docs/roadmap.md](docs/roadmap.md)** (full plan)
+See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md) · [docs/local-testing.md](docs/local-testing.md) · **[docs/roadmap.md](docs/roadmap.md)** (full plan)
 
 ## Status
 

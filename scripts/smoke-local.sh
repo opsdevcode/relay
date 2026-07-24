@@ -23,9 +23,10 @@ echo "$answer" | grep -q 'Resource Tagging' || { echo "Q&A smoke failed"; echo "
 echo "==> platform services"
 curl -sf "$API/platform-services" | grep -q 'golden-path-scaffold' || exit 1
 
-echo "==> scaffold confirm (workflow link, no token)"
+echo "==> scaffold confirm (chat draft shape, no token)"
 confirm="$(curl -sf -X POST "$API/actions/confirm" -H 'Content-Type: application/json' \
-  -d '{"draft":{"action":"scaffold_service","service_name":"demo-api","description":"Demo"}}')"
+  -d '{"draft":{"action":"scaffold_service","mode":"workflow_dispatch","requires_confirmation":true,"inputs":{"service_name":"payments-api","description":"Payments","github_org":"opsdevcode"}}}')"
 echo "$confirm" | grep -q 'workflow_url' || { echo "scaffold confirm failed"; echo "$confirm"; exit 1; }
+echo "$confirm" | grep -q 'payments-api' || { echo "expected payments-api in confirm response"; echo "$confirm"; exit 1; }
 
 echo "OK — local dev works without API keys"

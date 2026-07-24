@@ -2,7 +2,7 @@
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
-**Related docs:** [local-setup.md](local-setup.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
+**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
 
 ---
 
@@ -25,6 +25,7 @@ The working model proves the pattern locally with **no API keys required**. Prod
 | **Draft-and-route** | The assistant never applies production change directly; it prepares drafts for PR or ticket workflows. |
 | **No secrets in the app** | GitHub Actions uses the built-in `GITHUB_TOKEN` in CI; the portal returns workflow links, not PATs. |
 | **Local-first demo** | `make up` must work with zero model keys (extractive RAG default). |
+| **Local testing first-class** | `make ci` (no Docker) and `make verify` (stack + smoke) are documented deliverables; new behavior ships with tests in the same change. |
 | **Pluggable models** | Optional LLM synthesis via a thin client (`apps/portal-assistant/src/portal_assistant/llm.py`); no vendor-specific agent runtime required in this repo. |
 | **Portable K8s** | Base manifests are cloud-neutral; overlays only adjust ingress/LB annotations. |
 | **Registry-driven growth** | New platform capabilities onboard by extending `packages/platform-services/registry.yaml` and wiring tools — not by fork-lifting the agent. |
@@ -45,14 +46,15 @@ What ships in this repo today:
 | Sandbox action | Done | Draft → confirm → GitHub issue template link |
 | Platform registry | Done (YAML) | Four services declared; agent partially hardcoded |
 | K8s manifests | Done (base) | Portal web + assistant; no in-cluster DB/corpus yet |
-| CI | Partial | Scaffold workflow only; no PR test gate |
+| Local testing | Done (baseline) | `make ci`, `make smoke`, `make verify`; see [local-testing.md](local-testing.md) |
+| CI | Done | Unit tests on PR/push via `.github/workflows/ci.yml` |
 | Backstage | Planned | `apps/backstage/README.md` placeholder |
 | Teams / Slack | Planned | Same API; adapters not built |
 | Semantic RAG | Not started | pgvector installed; embeddings unused |
 | Auth | Not started | Open API in local demo |
 | Real observability | Not started | `service_health` returns mock data |
 
-Run `make smoke` to validate the baseline end-to-end without API keys.
+Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
 
 ---
 
@@ -108,14 +110,16 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | 0.3 | Web UX polish | Markdown rendering, suggested prompt chips, clickable citations | `apps/web/` |
 | 0.4 | Committed scaffold example | `examples/services/demo-api/` generated from template | template + workflow or manual seed |
 | 0.5 | Demo script | 5-minute presenter walkthrough | `docs/demo-script.md` |
-| 0.6 | PR CI | `make test` on every PR; optional smoke job | `.github/workflows/ci.yml` |
-| 0.7 | Integration test | Chat → draft → confirm with realistic draft JSON | `tests/` or `scripts/` |
+| 0.6 | PR CI | `make ci` on every PR | `.github/workflows/ci.yml` — **done** |
+| 0.7 | Integration test | Chat-shaped draft → confirm preserves `inputs.service_name` | `tests/test_scaffold.py` — **done** |
 
 ### Milestone M0: Demo-ready
 
-- [ ] `make smoke` passes on a fresh clone with no `.env` keys.
+- [ ] `make ci` passes on a clean clone (Python 3.12 + `pip install -e "./apps/portal-assistant[dev]"`).
+- [ ] `make smoke` passes on a fresh clone with no `.env` API keys after `make up`.
+- [ ] `make verify` passes before release tags (optional local gate for maintainers).
 - [ ] Live demo: Q&A with citation → list services → scaffold named service → workflow link shows correct inputs.
-- [ ] README and demo script match actual behavior.
+- [ ] README, [local-testing.md](local-testing.md), and demo script match actual behavior.
 
 ---
 
