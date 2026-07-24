@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     web_origin: str = "http://localhost:3000"
     knowledge_path: str = "/knowledge"
     github_org: str = "opsdevcode"
-    github_repo: str = "opsdevcode/ai-developer-portal"
+    github_repo: str = "opsdevcode/relay"
 
 
 settings = Settings()

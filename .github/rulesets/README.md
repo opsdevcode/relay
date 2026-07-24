@@ -1,30 +1,30 @@
 # Repository rulesets
 
 Version-controlled definition of the **main branch** ruleset for
-`opsdevcode/ai-developer-portal` (aligned with [opsdevcode/repave](https://github.com/opsdevcode/repave)).
+`opsdevcode/relay` (aligned with [opsdevcode/repave](https://github.com/opsdevcode/repave)).
 
 ## Apply
 
 Requires admin on the repository:
 
 ```bash
-gh api --method POST repos/opsdevcode/ai-developer-portal/rulesets \
+gh api --method POST repos/opsdevcode/relay/rulesets \
   --input .github/rulesets/main-branch.json
 ```
 
 If a ruleset named `main branch` already exists, update it:
 
 ```bash
-RULESET_ID="$(gh ruleset list --repo opsdevcode/ai-developer-portal --json id,name \
+RULESET_ID="$(gh ruleset list --repo opsdevcode/relay --json id,name \
   -q '.[] | select(.name=="main branch") | .id')"
-gh api --method PUT "repos/opsdevcode/ai-developer-portal/rulesets/${RULESET_ID}" \
+gh api --method PUT "repos/opsdevcode/relay/rulesets/${RULESET_ID}" \
   --input .github/rulesets/main-branch.json
 ```
 
 Inspect:
 
 ```bash
-gh ruleset check main --repo opsdevcode/ai-developer-portal
+gh ruleset check main --repo opsdevcode/relay
 ```
 
 Docs-only pull requests rely on workflows that **always run** but skip heavy work via

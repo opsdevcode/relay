@@ -11,8 +11,8 @@ For **local testing** (`make ci`, `make smoke`, `make verify`), see [local-testi
 ## Steps
 
 ```bash
-git clone git@github.com:opsdevcode/ai-developer-portal.git
-cd ai-developer-portal
+git clone git@github.com:opsdevcode/relay.git
+cd relay
 
 make up
 open http://localhost:3000
@@ -43,7 +43,7 @@ That's it — **no API keys, no manual ingest**. On first start the Portal Assis
 
 - Wait a few seconds after `make up` for startup ingestion
 - Or run `make ingest`
-- Check mount: `docker compose -f deploy/docker-compose.yml exec portal-assistant ls /knowledge/standards`
+- Check mount: `docker compose -f deploy/docker-compose.yml exec relay-assistant ls /knowledge/standards`
 
 **Fresh start**
 

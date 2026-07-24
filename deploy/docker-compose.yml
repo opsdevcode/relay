@@ -21,10 +21,10 @@ services:
       timeout: 3s
       retries: 10
 
-  portal-assistant:
+  relay-assistant:
     build:
       context: ..
-      dockerfile: apps/portal-assistant/Dockerfile
+      dockerfile: apps/relay-assistant/Dockerfile
     env_file:
       - path: ../.env
         required: false
@@ -49,7 +49,7 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - portal-assistant
+      - relay-assistant
 
 volumes:
   postgres_data:

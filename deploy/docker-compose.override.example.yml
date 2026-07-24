@@ -1,6 +1,6 @@
 # Copy to docker-compose.override.yml to index a custom markdown tree.
 # Paths are relative to deploy/
 services:
-  portal-assistant:
+  relay-assistant:
     volumes:
       - /path/to/your/markdown:/knowledge:ro

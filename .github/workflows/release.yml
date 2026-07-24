@@ -25,34 +25,34 @@ jobs:
     steps:
       - name: Require release token
         run: |
-          if [ -z "${{ secrets.PORTAL_RELEASE_TOKEN }}" ]; then
-            echo "::error::PORTAL_RELEASE_TOKEN is not set. Run: gh secret set PORTAL_RELEASE_TOKEN --repo opsdevcode/ai-developer-portal"
+          if [ -z "${{ secrets.RELAY_RELEASE_TOKEN }}" ]; then
+            echo "::error::RELAY_RELEASE_TOKEN is not set. Run: gh secret set RELAY_RELEASE_TOKEN --repo opsdevcode/relay"
             exit 1
           fi
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-          token: ${{ secrets.PORTAL_RELEASE_TOKEN }}
+          token: ${{ secrets.RELAY_RELEASE_TOKEN }}
 
       - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: "3.12"
 
-      - name: Install portal-assistant and semantic-release
-        working-directory: apps/portal-assistant
+      - name: Install relay-assistant and semantic-release
+        working-directory: apps/relay-assistant
         run: |
           pip install --no-cache-dir -e ".[dev]"
           pip install "python-semantic-release~=10.0"
 
       - name: Run tests
-        working-directory: apps/portal-assistant
+        working-directory: apps/relay-assistant
         env:
           PYTHONPATH: src
         run: python -m pytest -q
 
       - name: Create GitHub release on conventional commits
-        working-directory: apps/portal-assistant
+        working-directory: apps/relay-assistant
         env:
-          GH_TOKEN: ${{ secrets.PORTAL_RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELAY_RELEASE_TOKEN }}
         run: semantic-release version

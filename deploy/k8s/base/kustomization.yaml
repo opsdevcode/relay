@@ -1,11 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: developer-portal
+namespace: relay
 resources:
   - namespace.yaml
   - configmap.yaml
-  - portal-assistant-deployment.yaml
-  - portal-assistant-service.yaml
-  - portal-web-deployment.yaml
-  - portal-web-service.yaml
+  - relay-assistant-deployment.yaml
+  - relay-assistant-service.yaml
+  - relay-web-deployment.yaml
+  - relay-web-service.yaml
   - ingress.yaml

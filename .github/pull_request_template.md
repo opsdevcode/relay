@@ -22,7 +22,7 @@
 
 ## Scope
 
-- [ ] `apps/portal-assistant/`
+- [ ] `apps/relay-assistant/`
 - [ ] `apps/web/`
 - [ ] `deploy/` / K8s / compose
 - [ ] `knowledge/` / RAG corpus

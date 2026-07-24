@@ -1,6 +1,6 @@
 # demo-api
 
-Containerized service scaffolded from the AI Developer Portal golden path.
+Containerized service scaffolded from the Relay golden path.
 Runs on **any managed Kubernetes** (EKS, AKS, GKE, etc.).
 
 ## Layout

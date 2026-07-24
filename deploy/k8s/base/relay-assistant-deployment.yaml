@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: portal-assistant
-  namespace: developer-portal
+  name: relay-assistant
+  namespace: relay
   labels:
-    app.kubernetes.io/name: portal-assistant
-    app.kubernetes.io/part-of: ai-developer-portal
+    app.kubernetes.io/name: relay-assistant
+    app.kubernetes.io/part-of: relay
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app.kubernetes.io/name: portal-assistant
+      app.kubernetes.io/name: relay-assistant
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: portal-assistant
+        app.kubernetes.io/name: relay-assistant
     spec:
       containers:
-        - name: portal-assistant
-          image: ghcr.io/opsdevcode/portal-assistant:latest
+        - name: relay-assistant
+          image: ghcr.io/opsdevcode/relay-assistant:latest
           ports:
             - name: http
               containerPort: 8080
           envFrom:
             - secretRef:
-                name: portal-assistant-secrets
+                name: relay-assistant-secrets
             - configMapRef:
-                name: portal-assistant-config
+                name: relay-assistant-config
           readinessProbe:
             httpGet:
               path: /health

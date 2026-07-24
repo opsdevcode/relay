@@ -1,11 +1,11 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: ai-developer-portal
-  title: AI Developer Portal
+  name: relay
+  title: Relay
   description: Conversational internal developer portal working model
   annotations:
-    github.com/project-slug: opsdevcode/ai-developer-portal
+    github.com/project-slug: opsdevcode/relay
   tags:
     - platform
     - portal

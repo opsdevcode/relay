@@ -1,4 +1,4 @@
-# Platform Assistant Usage
+# Relay usage
 
 ## Purpose
 

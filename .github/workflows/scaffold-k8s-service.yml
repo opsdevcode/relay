@@ -62,7 +62,7 @@ jobs:
           commit-message: "scaffold: add ${{ inputs.service_name }}"
           body: |
             ## Summary
-            Scaffold **`${{ inputs.service_name }}`** from the k8s-service golden path via Platform Assistant workflow dispatch.
+            Scaffold **`${{ inputs.service_name }}`** from the k8s-service golden path via Relay workflow dispatch.
 
             ## Inputs
             - **service_name:** `${{ inputs.service_name }}`
