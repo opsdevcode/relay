@@ -25,27 +25,18 @@ jobs:
         if: steps.paths.outputs.ci_needed != 'true'
         run: echo "No code changes outside docs-only paths; skipping semantic PR check."
 
-      - uses: amannn/action-semantic-pull-request@e9fabac35e210fea40ca5b14c0da95a099eff26f # v5.4.0
+      - name: Validate PR title (Conventional Commits)
         if: steps.paths.outputs.ci_needed == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            feat
-            fix
-            docs
-            style
-            refactor
-            perf
-            test
-            build
-            ci
-            chore
-            revert
-          requireScope: false
-          subjectPattern: ^(?![A-Z]).+$
-          subjectPatternError: |
-            The subject must not start with an uppercase character.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9.-]+\))?(!)?: [a-z].+$'
+          if ! printf '%s' "$PR_TITLE" | grep -qE "$pattern"; then
+            echo "::error::PR title must follow Conventional Commits (type: lowercase subject)."
+            echo "Title: $PR_TITLE"
+            exit 1
+          fi
 
   commitlint:
     runs-on: ubuntu-latest
@@ -61,7 +52,13 @@ jobs:
         if: steps.paths.outputs.ci_needed != 'true'
         run: echo "No code changes outside docs-only paths; skipping commitlint."
 
-      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+      - name: Lint PR commits
         if: steps.paths.outputs.ci_needed == 'true'
-        with:
-          configFile: .github/commitlint.config.mjs
+        run: |
+          set -euo pipefail
+          node --version
+          npm install --no-save @commitlint/cli@19 @commitlint/config-conventional@19
+          npx commitlint \
+            --config .github/commitlint.config.mjs \
+            --from "${{ github.event.pull_request.base.sha }}" \
+            --to "${{ github.event.pull_request.head.sha }}"
