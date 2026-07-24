@@ -1,0 +1,50 @@
+name: Release
+
+# Docs-only merges do not run the release job (see CONTRIBUTING.md).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "LICENSE"
+      - ".github/pull_request_template.md"
+      - "CHANGELOG.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/portal-assistant
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PORTAL_RELEASE_TOKEN }}
+
+      - uses: actions/setup-python@a26af69be951a213d495a226c626294659e2e22f # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install portal-assistant and semantic-release
+        run: |
+          pip install --no-cache-dir -e ".[dev]"
+          pip install "python-semantic-release~=10.0"
+
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+        run: python -m pytest -q
+
+      - name: Create GitHub release on conventional commits
+        env:
+          GH_TOKEN: ${{ secrets.PORTAL_RELEASE_TOKEN }}
+        run: semantic-release version

@@ -107,6 +107,49 @@ docs: expand local testing guide
 
 **PR titles** are validated the same way (for example `ci: align workflows with repave`).
 
+## Releases (semver)
+
+Versioning and GitHub releases are automated from
+[Conventional Commits](https://www.conventionalcommits.org/) on `main` using
+[python-semantic-release](https://python-semantic-release.readthedocs.io/) for the
+`portal-assistant` package (`apps/portal-assistant/`).
+
+| Commit type | Semver bump |
+| --- | --- |
+| `fix:` | Patch |
+| `feat:` | Minor |
+| `feat!:` / `fix!:` / `BREAKING CHANGE:` | Major |
+| `docs:`, `chore:`, `ci:`, `refactor:`, `test:` | None (unless breaking) |
+
+Flow:
+
+1. Merge a PR to `main` with a conventional title (`feat:`, `fix:`, etc.).
+2. CI runs; the **Release** workflow (non-docs-only paths) runs tests, bumps version,
+   updates `CHANGELOG.md`, tags `vX.Y.Z`, and publishes a GitHub Release with wheel/sdist
+   artifacts.
+3. No separate release PR is required.
+
+The **Release** workflow does not run when a push to `main` only touches docs-only paths
+(see `release.yml` `paths-ignore`).
+
+Changelog: [`apps/portal-assistant/CHANGELOG.md`](apps/portal-assistant/CHANGELOG.md).
+
+## Maintainer setup
+
+`main` is protected; release commits must push version bumps back to `main`. The release
+workflow uses repository secret **`PORTAL_RELEASE_TOKEN`**: a fine-grained or classic PAT
+owned by a maintainer with `contents: write` on this repository.
+
+```bash
+gh secret set PORTAL_RELEASE_TOKEN --repo opsdevcode/ai-developer-portal
+```
+
+Org scope (optional):
+
+```bash
+gh secret set PORTAL_RELEASE_TOKEN --org opsdevcode --visibility private
+```
+
 ## Pull requests
 
 - Use the [pull request template](.github/pull_request_template.md).

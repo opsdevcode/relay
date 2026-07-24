@@ -38,6 +38,13 @@
 - [ ] `make up && make smoke` (stack + HTTP smoke)
 - [ ] not run (explain why)
 
+## Release impact
+
+<!-- python-semantic-release publishes on merge to main for feat/fix/breaking commits. -->
+
+- [ ] user-facing release note expected (`feat` / `fix` / breaking) → **semver minor/patch/major**
+- [ ] no release bump expected (`docs`, `chore`, `ci`, etc.)
+
 ## Checklist
 
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)
