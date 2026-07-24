@@ -11,6 +11,7 @@ from portal_assistant import __version__
 from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
+from portal_assistant.sessions import SessionStore, create_session_store
 from portal_assistant.store import DocumentStore
 from portal_assistant.tools import load_registry
 
@@ -19,12 +20,14 @@ logger = logging.getLogger(__name__)
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
+    thread_id: str | None = Field(default=None, max_length=64)
 
 
 class ChatResponse(BaseModel):
     answer: str
     citations: list[dict]
     draft: dict | None = None
+    thread_id: str | None = None
 
 
 class ConfirmRequest(BaseModel):
@@ -32,6 +35,7 @@ class ConfirmRequest(BaseModel):
 
 
 store = DocumentStore(settings.database_url)
+session_store: SessionStore | None = None
 
 
 def _ensure_indexed() -> int:
@@ -51,7 +55,13 @@ def _ensure_indexed() -> int:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    global session_store
     _ensure_indexed()
+    session_store = create_session_store(
+        settings.redis_url,
+        ttl_seconds=settings.session_ttl_seconds,
+        max_turns=settings.session_max_turns,
+    )
     yield
 
 
@@ -93,7 +103,12 @@ def scaffold_link(service_name: str, description: str = "") -> dict:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(body: ChatRequest) -> ChatResponse:
-    result = await handle_message(body.message.strip(), store)
+    result = await handle_message(
+        body.message.strip(),
+        store,
+        session_store=session_store,
+        thread_id=body.thread_id,
+    )
     return ChatResponse(**result)
 
 
