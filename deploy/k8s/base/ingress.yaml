@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: developer-portal
-  namespace: developer-portal
+  name: relay
+  namespace: relay
   annotations:
     # Set ingress class in overlay: nginx | alb | gce | aks-specific
 spec:
@@ -15,13 +15,13 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: portal-assistant
+                name: relay-assistant
                 port:
                   number: 8080
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: portal-web
+                name: relay-web
                 port:
                   number: 80

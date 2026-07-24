@@ -1,4 +1,4 @@
-# AI Developer Portal — Roadmap
+# Relay — Roadmap
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
@@ -26,7 +26,7 @@ The working model proves the pattern locally with **no API keys required**. Prod
 | **No secrets in the app** | GitHub Actions uses the built-in `GITHUB_TOKEN` in CI; the portal returns workflow links, not PATs. |
 | **Local-first demo** | `make up` must work with zero model keys (extractive RAG default). |
 | **Local testing first-class** | `make ci` (no Docker) and `make verify` (stack + smoke) are documented deliverables; new behavior ships with tests in the same change. |
-| **Pluggable models** | Optional LLM synthesis via a thin client (`apps/portal-assistant/src/portal_assistant/llm.py`); no vendor-specific agent runtime required in this repo. |
+| **Pluggable models** | Optional LLM synthesis via a thin client (`apps/relay-assistant/src/portal_assistant/llm.py`); no vendor-specific agent runtime required in this repo. |
 | **Portable K8s** | Base manifests are cloud-neutral; overlays only adjust ingress/LB annotations. |
 | **Registry-driven growth** | New platform capabilities onboard by extending `packages/platform-services/registry.yaml` and wiring tools — not by fork-lifting the agent. |
 
@@ -115,7 +115,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 
 ### Milestone M0: Demo-ready
 
-- [ ] `make ci` passes on a clean clone (Python 3.12 + `pip install -e "./apps/portal-assistant[dev]"`).
+- [ ] `make ci` passes on a clean clone (Python 3.12 + `pip install -e "./apps/relay-assistant[dev]"`).
 - [ ] `make smoke` passes on a fresh clone with no `.env` API keys after `make up`.
 - [ ] `make verify` passes before release tags (optional local gate for maintainers).
 - [ ] Live demo: Q&A with citation → list services → scaffold named service → workflow link shows correct inputs.

@@ -1,4 +1,4 @@
-# AI Developer Portal — Working Model
+# Relay
 
 Local-first conversational internal developer portal: cited Q&A, platform-service registry, and draft-and-route actions.
 
@@ -30,7 +30,7 @@ To index a custom markdown tree, add `deploy/docker-compose.override.yml` (see `
 
 ```text
 apps/
-  portal-assistant/     # FastAPI: chat, RAG, tools
+  relay-assistant/      # FastAPI: chat, RAG, tools
   web/                  # Static chat UI (Backstage plugin comes later)
 packages/
   platform-services/    # Registry: knowledge + tools + views per capability
@@ -51,7 +51,7 @@ docs/
 
 ```mermaid
 flowchart LR
-  WEB[Web chat UI] --> PA[Portal Assistant]
+  WEB[Web chat UI] --> PA[Relay API]
   PA --> PG[(Postgres FTS / pgvector)]
   PA --> RD[(Redis sessions)]
   PA --> LLM[LLM provider API]
@@ -66,8 +66,8 @@ Draft-and-route: mutating tools return a **draft**; the UI requires explicit con
 | Surface | Status |
 | --- | --- |
 | **Web** (embedded chat) | Working model — `apps/web/` |
-| **Microsoft Teams** | Planned — bot adapter on Portal Assistant API |
-| **Slack** | Planned — bot adapter on Portal Assistant API |
+| **Microsoft Teams** | Planned — bot adapter on Relay API |
+| **Slack** | Planned — bot adapter on Relay API |
 
 Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend with channel-specific adapters.
 
@@ -99,4 +99,4 @@ Version tags (`vX.Y.Z`) and GitHub Releases are automated from
 [Conventional Commits](https://www.conventionalcommits.org/) on `main` via
 [python-semantic-release](https://python-semantic-release.readthedocs.io/).
 See [CONTRIBUTING.md](CONTRIBUTING.md) for commit types, semver bumps, and the
-`PORTAL_RELEASE_TOKEN` secret.
+`RELAY_RELEASE_TOKEN` secret.

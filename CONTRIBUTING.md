@@ -1,4 +1,4 @@
-# Contributing to AI Developer Portal
+# Contributing to Relay
 
 Thanks for your interest in this working model. The goal is a **local-first**, **zero-key** demo of a conversational IDP that grows into a pilot-ready product — see [`docs/roadmap.md`](docs/roadmap.md).
 
@@ -14,7 +14,7 @@ Thanks for your interest in this working model. The goal is a **local-first**, *
 From repo root (Python 3.12 recommended):
 
 ```bash
-make install      # pip install -e apps/portal-assistant[dev]
+make install      # pip install -e apps/relay-assistant[dev]
 make up           # Docker stack — no API keys required
 make ci             # ruff + mypy + bandit + pip-audit + pytest (host)
 make smoke          # HTTP smoke (requires make up)
@@ -50,9 +50,9 @@ CI runs these on every push and pull request (aligned with [opsdevcode/repave](h
 - `LICENSE`
 - `.github/pull_request_template.md`
 
-Detection lives in `.github/actions/ci-paths/`. Mixed PRs (for example `docs/` plus `apps/portal-assistant/`) run the full gate.
+Detection lives in `.github/actions/ci-paths/`. Mixed PRs (for example `docs/` plus `apps/relay-assistant/`) run the full gate.
 
-Configuration: `apps/portal-assistant/pyproject.toml`.
+Configuration: `apps/relay-assistant/pyproject.toml`.
 
 | Tool | Purpose |
 | --- | --- |
@@ -72,16 +72,16 @@ Repository ruleset **main branch** (see `.github/rulesets/main-branch.json`) req
 Apply or update after editing the JSON:
 
 ```bash
-gh api --method POST repos/opsdevcode/ai-developer-portal/rulesets \
+gh api --method POST repos/opsdevcode/relay/rulesets \
   --input .github/rulesets/main-branch.json
 ```
 
 To update an existing ruleset:
 
 ```bash
-RULESET_ID="$(gh ruleset list --repo opsdevcode/ai-developer-portal --json id,name \
+RULESET_ID="$(gh ruleset list --repo opsdevcode/relay --json id,name \
   -q '.[] | select(.name=="main branch") | .id')"
-gh api --method PUT "repos/opsdevcode/ai-developer-portal/rulesets/${RULESET_ID}" \
+gh api --method PUT "repos/opsdevcode/relay/rulesets/${RULESET_ID}" \
   --input .github/rulesets/main-branch.json
 ```
 
@@ -112,7 +112,7 @@ docs: expand local testing guide
 Versioning and GitHub releases are automated from
 [Conventional Commits](https://www.conventionalcommits.org/) on `main` using
 [python-semantic-release](https://python-semantic-release.readthedocs.io/) for the
-`portal-assistant` package (`apps/portal-assistant/`).
+`relay-assistant` package (`apps/relay-assistant/`).
 
 | Commit type | Semver bump |
 | --- | --- |
@@ -132,33 +132,33 @@ Flow:
 The **Release** workflow does not run when a push to `main` only touches docs-only paths
 (see `release.yml` `paths-ignore`).
 
-Changelog: [`apps/portal-assistant/CHANGELOG.md`](apps/portal-assistant/CHANGELOG.md).
+Changelog: [`apps/relay-assistant/CHANGELOG.md`](apps/relay-assistant/CHANGELOG.md).
 
 ## Maintainer setup
 
 `main` is protected; release commits must push version bumps back to `main`. The release
-workflow uses repository secret **`PORTAL_RELEASE_TOKEN`**: a fine-grained or classic PAT
+workflow uses repository secret **`RELAY_RELEASE_TOKEN`**: a fine-grained or classic PAT
 owned by a maintainer with `contents: write` on this repository.
 
 ```bash
-gh secret set PORTAL_RELEASE_TOKEN --repo opsdevcode/ai-developer-portal
+gh secret set RELAY_RELEASE_TOKEN --repo opsdevcode/relay
 ```
 
 Org scope (optional):
 
 ```bash
-gh secret set PORTAL_RELEASE_TOKEN --org opsdevcode --visibility private
+gh secret set RELAY_RELEASE_TOKEN --org opsdevcode --visibility private
 ```
 
 ### Releases not showing up?
 
-1. **Secret missing** — The Release job fails immediately if `PORTAL_RELEASE_TOKEN` is unset.
-   Check: `gh secret list --repo opsdevcode/ai-developer-portal` (name must appear).
+1. **Secret missing** — The Release job fails immediately if `RELAY_RELEASE_TOKEN` is unset.
+   Check: `gh secret list --repo opsdevcode/relay` (name must appear).
    Use the same PAT pattern as repave’s `REPAVE_RELEASE_TOKEN` if you already have one.
 2. **Re-run after adding the secret** — Merges do not retry automatically:
 
 ```bash
-gh workflow run Release --repo opsdevcode/ai-developer-portal --ref main
+gh workflow run Release --repo opsdevcode/relay --ref main
 ```
 
 3. **Commit type** — Only `feat` / `fix` / breaking commits since the last tag produce a bump.

@@ -35,7 +35,7 @@ Public users may **fork** and **open issues/PRs**, but they **cannot**:
 - Do **not** store personal API keys in the repo — use gitignored `.env` locally
 - Review PRs from forks carefully before merging (workflows do not run from forks)
 - Rotate keys if a fork PR ever looks suspicious
-- Set **`PORTAL_RELEASE_TOKEN`** for automated semver releases (see [CONTRIBUTING.md](CONTRIBUTING.md)); never commit the token
+- Set **`RELAY_RELEASE_TOKEN`** for automated semver releases (see [CONTRIBUTING.md](CONTRIBUTING.md)); never commit the token
 
 ## Org-level recommendations (`opsdevcode`)
 

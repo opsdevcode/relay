@@ -1,12 +1,12 @@
 # Demo script (≈5 minutes)
 
-Present the **AI Developer Portal** working model with **no API keys**. Audience: platform leadership or design partners.
+Present **Relay** with **no API keys**. Audience: platform leadership or design partners.
 
 ## Before you start
 
 ```bash
-git clone git@github.com:opsdevcode/ai-developer-portal.git
-cd ai-developer-portal
+git clone git@github.com:opsdevcode/relay.git
+cd relay
 make up
 make smoke   # optional confidence check
 open http://localhost:3000

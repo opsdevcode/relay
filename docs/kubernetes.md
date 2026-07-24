@@ -6,8 +6,8 @@ Manifests are **cloud-neutral** in `deploy/k8s/base/`. Only ingress class and lo
 
 ```bash
 make build-k8s
-docker push ghcr.io/opsdevcode/portal-assistant:local
-docker push ghcr.io/opsdevcode/portal-web:local
+docker push ghcr.io/opsdevcode/relay-assistant:local
+docker push ghcr.io/opsdevcode/relay-web:local
 ```
 
 Tag `:latest` (or digest-pin) in your GitOps repo before prod.
@@ -21,8 +21,8 @@ kubectl apply -k deploy/k8s/base
 Create a real Secret before deploying (do not commit secrets):
 
 ```bash
-kubectl create namespace developer-portal
-kubectl -n developer-portal create secret generic portal-assistant-secrets \
+kubectl create namespace relay
+kubectl -n relay create secret generic relay-assistant-secrets \
   --from-literal=ANTHROPIC_API_KEY=... \
   --from-literal=DATABASE_URL=postgresql://... \
   --from-literal=REDIS_URL=redis://...

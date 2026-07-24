@@ -5,7 +5,7 @@ Local testing is a **first-class deliverable** for this repository. Anyone cloni
 **Quick gate**
 
 ```bash
-make install     # pip install -e apps/portal-assistant[dev]
+make install     # pip install -e apps/relay-assistant[dev]
 make ci          # quality + security + unit tests (matches CI jobs on host)
 make up          # start stack (no keys)
 make verify      # unit tests in container + HTTP smoke
@@ -60,7 +60,7 @@ Includes Ruff, mypy, Bandit, pip-audit, and pytest.
 make test-local
 ```
 
-**Requirements:** Python 3.11+ (3.12 recommended), `make install` or `pip install -e "./apps/portal-assistant[dev]"`.
+**Requirements:** Python 3.11+ (3.12 recommended), `make install` or `pip install -e "./apps/relay-assistant[dev]"`.
 
 **No API keys.** No Postgres. No Redis.
 
@@ -134,7 +134,7 @@ Every change to portal behavior should extend local testing in the same PR:
 **`make ci` — No module named pytest**
 
 ```bash
-pip install -e "./apps/portal-assistant[dev]"
+pip install -e "./apps/relay-assistant[dev]"
 ```
 
 **`make test` — service not running**
@@ -146,8 +146,8 @@ docker compose -f deploy/docker-compose.yml ps
 
 **`make smoke` — API unreachable**
 
-- Confirm port 8080 is free and `portal-assistant` container is healthy.
-- `docker compose -f deploy/docker-compose.yml logs portal-assistant`
+- Confirm port 8080 is free and `relay-assistant` container is healthy.
+- `docker compose -f deploy/docker-compose.yml logs relay-assistant`
 
 **`make smoke` — documents: 0**
 
@@ -184,7 +184,7 @@ We treat local testing as **done for a release** when all of the following hold:
 | `make bootstrap` | Create `.env` from example if missing |
 | `make up` / `make down` | Start/stop compose stack |
 | `make ingest` | Re-index knowledge corpus |
-| `make install` | Install dev dependencies (`apps/portal-assistant[dev]`) |
+| `make install` | Install dev dependencies (`apps/relay-assistant[dev]`) |
 | `make ci` | Quality + security + unit tests (host) |
 | `make test-local` | Pytest only (host) |
 | `make test-docker` | Pytest inside container |

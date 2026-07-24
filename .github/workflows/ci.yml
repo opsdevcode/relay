@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/portal-assistant
+        working-directory: apps/relay-assistant
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install portal-assistant (dev)
+      - name: Install relay-assistant (dev)
         if: steps.paths.outputs.ci_needed == 'true'
         run: pip install --no-cache-dir -e ".[dev]"
 

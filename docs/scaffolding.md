@@ -12,7 +12,7 @@ The working model uses **draft-and-route**: the Portal Assistant prepares a scaf
 
 ## Enable the workflow (one-time, in GitHub UI)
 
-In **`opsdevcode/ai-developer-portal`**:
+In **`opsdevcode/relay`**:
 
 1. **Settings → Actions → General → Workflow permissions**
 2. Select **Read and write permissions**
