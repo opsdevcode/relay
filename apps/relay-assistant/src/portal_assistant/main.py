@@ -40,6 +40,15 @@ session_store: SessionStore | None = None
 
 def _ensure_indexed() -> int:
     store.init_schema()
+    if store.count() > 0 and store.needs_embedding_backfill():
+        try:
+            from rag_ingestion.cli import ingest
+
+            logger.info("Documents missing embeddings — re-ingesting for hybrid search")
+            ingest()
+        except Exception:
+            logger.exception("Embedding backfill ingestion failed")
+            raise
     if store.count() > 0:
         return store.count()
     try:
@@ -84,6 +93,7 @@ def health() -> dict:
         "version": __version__,
         "documents": count,
         "answer_mode": "llm" if settings.anthropic_api_key else "extractive",
+        "retrieval_mode": store.retrieval_mode(),
         "api_keys_required": False,
     }
 

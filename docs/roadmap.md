@@ -50,7 +50,7 @@ What ships in this repo today:
 | CI / PR workflow | Done | Repave-style workflows + ruleset JSON + [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Backstage | Planned | `apps/backstage/README.md` placeholder |
 | Teams / Slack | Planned | Same API; adapters not built |
-| Semantic RAG | Not started | pgvector installed; embeddings unused |
+| Semantic RAG | Done (hybrid baseline) | Local hash embeddings + FTS RRF in Postgres/pgvector |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
 | Auth | Not started | Open API in local demo |
 | Real observability | Not started | `service_health` returns mock data |
@@ -182,7 +182,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 1B.1 | Hybrid retrieval | Embeddings at ingest + FTS rank fusion in Postgres/pgvector |
+| 1B.1 | Hybrid retrieval | Embeddings at ingest + FTS rank fusion in Postgres/pgvector — **done** (local embedder; swap in prod) |
 | 1B.2 | Corpus pipeline | Documented ingest from Git (standards repo, doc-as-code output); re-index job or webhook |
 | 1B.3 | Metadata | Frontmatter (title, owner, updated); better chunk titles |
 | 1B.4 | Pluggable LLM client | Same interface for Anthropic, Azure OpenAI, or local model — org chooses in deploy config, not in this repo’s defaults |
@@ -387,9 +387,9 @@ Current registered services (working model):
 
 Recommended order after Phase 0:
 
-1. Phase **1A.2** LangGraph (or structured tool graph) — replace regex-only routing with a deterministic graph on write paths  
-2. Phase **1B.1** Hybrid retrieval — embeddings + FTS rank fusion  
+1. Phase **1A.2** LangGraph (or structured tool graph) — deterministic graph on write paths  
+2. Phase **1B.2** Corpus pipeline — Git/webhook re-index  
 
-Phase **1A.1**, **1A.3**, and **1A.4** are on `main` (registry routing, Redis sessions, prompt chips).
+Phase **1A.1**, **1A.3**, **1A.4**, and **1B.1** are on `main`.
 Routing: `packages/platform-services/registry.yaml` → `portal_assistant.tools.dispatch_tool`.
 Web prompts: optional `prompts` per service in the same file, loaded via `/platform-services`.
