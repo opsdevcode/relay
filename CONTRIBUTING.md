@@ -6,10 +6,13 @@ Thanks for your interest in this working model. The goal is a **local-first**, *
 
 - **Draft-and-route only.** Do not add paths that mutate production (or GitHub) without human confirmation.
 - **No secrets in the repo.** Use gitignored `.env` locally; never commit API keys or PATs.
-- **Local testing is mandatory.** Every new feature or fix ships with tests in the
-  same PR (unit and/or wiring coverage). Changes must pass `make ci`. See
-  [`docs/local-testing.md`](docs/local-testing.md). Do not merge `feat:` / `fix:`
-  work and plan tests as follow-up.
+- **Local testing is mandatory.** Every new feature or fix ships in the **same PR** with:
+  - **Unit tests** — pytest (`make ci`) and/or Backstage Jest (`make backstage-test`)
+  - **E2E updates** — extend [`scripts/smoke-local.sh`](scripts/smoke-local.sh) for Relay API
+    behavior and/or [`apps/backstage/packages/app/e2e-tests/`](apps/backstage/packages/app/e2e-tests/)
+    for Backstage UI flows
+  - Do not merge `feat:` / `fix:` work and plan tests as follow-up. See
+    [`docs/tdd.md`](docs/tdd.md) and [`docs/local-testing.md`](docs/local-testing.md).
 - **Pin Actions to SHAs.** Third-party actions in workflows must use full commit SHAs (see existing workflows).
 
 ## Development
@@ -20,8 +23,8 @@ From repo root (Python 3.12 recommended):
 make install      # pip install -e apps/relay-assistant[dev]
 make up           # Docker stack — no API keys required
 make ci             # ruff + mypy + bandit + pip-audit + pytest (host)
-make smoke          # HTTP smoke (requires make up)
-make backstage-install && make backstage-dev   # catalog UI on :3001 (Node 22+)
+make smoke          # HTTP smoke / API e2e (requires make up)
+make backstage-e2e  # Backstage Playwright (starts app on :3001 if needed)
 ```
 
 Or only unit tests:
@@ -173,8 +176,9 @@ gh workflow run Release --repo opsdevcode/relay --ref main
 ## Pull requests
 
 - Use the [pull request template](.github/pull_request_template.md).
-- Keep changes focused; include tests for assistant/RAG/tool changes.
-- Run `make ci` before opening; run `make smoke` when touching HTTP flows.
+- Keep changes focused; follow **TDD** ([docs/tdd.md](docs/tdd.md)): unit tests + E2E updates in the same PR.
+- Run `make ci` before opening; run `make smoke` when touching Relay API/ingest/chat; run
+  `make backstage-e2e` when touching Backstage catalog or UI.
 - Head branches are deleted automatically when a PR merges (`pr-branch-cleanup.yml`).
 
 ## Reporting issues

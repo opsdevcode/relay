@@ -24,6 +24,7 @@
 
 - [ ] `apps/relay-assistant/`
 - [ ] `apps/web/`
+- [ ] `apps/backstage/`
 - [ ] `deploy/` / K8s / compose
 - [ ] `knowledge/` / RAG corpus
 - [ ] `.github/` workflows
@@ -32,10 +33,12 @@
 
 ## Test plan
 
+- [ ] **TDD:** failing test(s) added before or with implementation ([docs/tdd.md](docs/tdd.md))
 - [ ] `make ci` (unit tests — no Docker)
 - [ ] `make quality` (ruff + mypy)
 - [ ] `make security` (bandit + pip-audit)
-- [ ] `make up && make smoke` (stack + HTTP smoke)
+- [ ] `make up && make smoke` when Relay API / ingest / chat behavior changed
+- [ ] `make backstage-e2e` when Backstage UI or catalog UX changed (or explain why not)
 - [ ] not run (explain why)
 
 ## Release impact
@@ -49,7 +52,7 @@
 
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)
 - [ ] Draft-and-route preserved (no direct prod mutation from chat)
-- [ ] New behavior includes tests per [docs/local-testing.md](docs/local-testing.md)
+- [ ] New behavior: **unit tests + E2E updates** per [docs/tdd.md](docs/tdd.md)
 - [ ] Actions pinned to full SHAs (repo policy)
 - [ ] Secrets/credentials are not committed or logged
 

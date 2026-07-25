@@ -1,4 +1,4 @@
-.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test
+.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test backstage-e2e
 
 PA := apps/relay-assistant
 BS := apps/backstage
@@ -67,6 +67,9 @@ backstage-dev:
 
 backstage-test:
 	cd $(BS) && CI=true yarn test --passWithNoTests --watchAll=false
+
+backstage-e2e:
+	cd $(BS) && yarn test:e2e
 
 build-k8s:
 	docker build -t ghcr.io/opsdevcode/relay-assistant:local apps/relay-assistant
