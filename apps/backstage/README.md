@@ -41,9 +41,10 @@ Port **3001** avoids clashing with Relay web (`make up` → `:3000`).
 | --- | --- |
 | Catalog contract (Python, always in `make ci`) | `pytest` → `test_catalog_entities.py`, `test_backstage_config.py` |
 | Backstage unit tests | `make backstage-test` |
+| Backstage E2E (Playwright) | `make backstage-e2e` |
 
-New catalog entities or Backstage config changes **must** update those tests in
-the same PR.
+New catalog entities or Backstage config changes **must** update contract tests and
+Playwright specs in the same PR ([docs/tdd.md](../../docs/tdd.md)).
 
 ## Next (not in 1C.1)
 

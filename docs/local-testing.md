@@ -11,7 +11,15 @@ make up          # start stack (no keys)
 make verify      # unit tests in container + HTTP smoke
 ```
 
-See also: [local-setup.md](local-setup.md) · [corpus-pipeline.md](corpus-pipeline.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
+See also: [local-setup.md](local-setup.md) · [corpus-pipeline.md](corpus-pipeline.md) · [tdd.md](tdd.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
+
+---
+
+## Test-driven development
+
+Use **red → green → refactor** for new behavior: write a failing pytest, Jest, or
+E2E assertion first, implement, then run `make ci` and stack/browser checks. Full
+workflow, examples, and PR checklist: **[tdd.md](tdd.md)**.
 
 ---
 
@@ -37,11 +45,13 @@ flowchart TB
   L3["Layer 3 — Container unit (`make test-docker`)"]
   L4["Layer 4 — Smoke (`make smoke`)"]
   L5["Layer 5 — Stack gate (`make verify`)"]
+  L6["Layer 6 — Backstage E2E (`make backstage-e2e`)"]
 
   L1 --> L2
   L2 --> L3
   L3 --> L4
   L4 --> L5
+  L5 --> L6
 ```
 
 ### Layer 1 — Host CI gate (no Docker)
@@ -77,10 +87,14 @@ make test-docker
 
 | Step | Validates |
 | --- | --- |
-| `GET /health` | OK status, `api_keys_required: false`, documents indexed |
-| `POST /chat` | Extractive Q&A over bundled corpus |
+| `GET /health` | OK status, `api_keys_required: false`, hybrid retrieval, documents indexed |
+| `POST /chat` | Extractive Q&A over bundled corpus; response includes `citations` with `title` |
+| `POST /internal/reindex` | **503** when `INGEST_WEBHOOK_SECRET` is unset (local default) |
 | `GET /platform-services` | Registry loaded |
 | `POST /actions/confirm` | Scaffold confirm with **chat-shaped draft** (`inputs.service_name`) |
+
+When you add or change HTTP behavior, **update this script in the same PR** (TDD:
+extend smoke in the red step, then implement). See [tdd.md](tdd.md).
 
 ```bash
 make up    # wait until healthy
@@ -98,6 +112,19 @@ make verify    # `make test-docker` then `make smoke`
 
 Use **`make verify`** before pushing changes that touch the assistant, ingestion, or smoke script.
 
+### Layer 6 — Backstage Playwright E2E
+
+`apps/backstage/packages/app/e2e-tests/` (Playwright). Locally, `make backstage-e2e`
+starts the app on **:3001** and backend **:7007** if not already running.
+
+```bash
+make backstage-install   # once
+make backstage-e2e
+```
+
+Update Playwright specs when catalog UX or guest login flow changes. Catalog seed
+entities (Relay, CloudOpt) are covered by `catalog-seed.test.ts`.
+
 ---
 
 ## CI parity
@@ -113,24 +140,31 @@ Use **`make verify`** before pushing changes that touch the assistant, ingestion
 
 Docs-only PRs skip heavy steps via `.github/actions/ci-paths/` but checks still report success (required for rulesets). See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+Playwright E2E is **local / pre-push** (`make backstage-e2e`); not required in CI yet
+(startup cost). Unit + contract tests gate Backstage PRs in CI.
+
 ---
 
 ## Adding tests with new behavior
 
-**Every feature and fix ships with tests in the same PR** — do not defer coverage.
+**TDD:** write the failing test first, then implement. **Every feature and fix**
+ships **unit tests and E2E updates** in the same PR.
 
-| Change type | Required testing |
-| --- | --- |
-| New tool or draft shape | Unit test for draft + confirm; extend smoke if HTTP-facing |
-| RAG / ingest / corpus pipeline | Unit tests for helpers + webhook/CLI wiring; smoke if default answers change |
-| Registry entry | Test that registry loads (smoke already checks one ID) |
-| Catalog / Backstage config | `test_catalog_entities.py` / `test_backstage_config.py`; `make backstage-test` when `apps/backstage/**` changes |
-| Web UI only | Manual check in browser; prefer a small JS test or smoke note in PR |
-| Bug fix | Regression test that fails before the fix and passes after |
+| Change type | Unit (red/green first) | E2E (same PR) |
+| --- | --- | --- |
+| New tool or draft shape | Draft + confirm pytest | Extend `scripts/smoke-local.sh` if HTTP-facing |
+| RAG / ingest / corpus pipeline | `test_ingest.py`, helpers | Smoke chat/citations/reindex when contracts change |
+| Registry entry | `test_registry.py` | Smoke already checks `golden-path-scaffold` |
+| Catalog / Backstage config | `test_catalog_entities.py`, `test_backstage_config.py` | `e2e-tests/*.ts`; `make backstage-e2e` |
+| New API route | `TestClient` pytest | New smoke step |
+| Web UI only (`apps/web/`) | Prefer small test or contract doc | Manual or future browser test; note in PR |
+| Bug fix | Regression pytest/Jest that failed before fix | Update smoke/Playwright if symptom was E2E-only |
 
-**Scaffold example:** `test_confirm_scaffold_draft_uses_chat_draft_shape` ensures confirm reads `inputs.service_name` from drafts returned by `/chat` — the same JSON the web UI posts on Confirm.
+**Scaffold example:** `test_confirm_scaffold_draft_uses_chat_draft_shape` ensures confirm reads `inputs.service_name` from drafts returned by `/chat` — the same JSON the web UI posts on Confirm. Smoke repeats the confirm call against a running stack.
 
-**Backstage (1C.1):** `make backstage-install && make backstage-test` (Node 22+). Catalog contract tests run in `make ci` without Node.
+**Backstage:** `make backstage-test` (Jest) in CI; `make backstage-e2e` (Playwright) before push when UI changes.
+
+More detail: [tdd.md](tdd.md).
 
 ---
 
@@ -178,7 +212,7 @@ We treat local testing as **done for a release** when all of the following hold:
 - [ ] `make ci` passes locally before every PR.
 - [ ] CI workflows `test`, quality, security, commitlint, and semantic PR checks pass on `main`.
 - [ ] [roadmap.md](roadmap.md) Phase 0 items for testing (0.6, 0.7) stay green or are superseded by stricter gates.
-- [ ] New features ship with tests per the table above.
+- [ ] New features ship with **unit + E2E** tests per [tdd.md](tdd.md) and the table above.
 
 ---
 
@@ -196,5 +230,7 @@ We treat local testing as **done for a release** when all of the following hold:
 | `make test-docker` | Pytest inside container |
 | `make quality` | Ruff + mypy |
 | `make security` | Bandit + pip-audit |
-| `make smoke` | HTTP smoke tests |
+| `make smoke` | HTTP smoke tests (`scripts/smoke-local.sh`) |
 | `make verify` | Container unit + smoke |
+| `make backstage-test` | Backstage Jest unit tests |
+| `make backstage-e2e` | Backstage Playwright E2E |

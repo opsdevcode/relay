@@ -2,7 +2,7 @@
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
-**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
+**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [tdd.md](tdd.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
 
 ---
 
@@ -25,7 +25,7 @@ The working model proves the pattern locally with **no API keys required**. Prod
 | **Draft-and-route** | The assistant never applies production change directly; it prepares drafts for PR or ticket workflows. |
 | **No secrets in the app** | GitHub Actions uses the built-in `GITHUB_TOKEN` in CI; the portal returns workflow links, not PATs. |
 | **Local-first demo** | `make up` must work with zero model keys (extractive RAG default). |
-| **Local testing first-class** | `make ci` (no Docker) and `make verify` (stack + smoke) are documented deliverables; new behavior ships with tests in the same change. |
+| **Local testing first-class** | `make ci` (no Docker) and `make verify` (stack + smoke) are documented deliverables; **TDD**: unit + E2E tests in the same PR ([tdd.md](tdd.md)). |
 | **Pluggable models** | Optional LLM synthesis via a thin client (`apps/relay-assistant/src/portal_assistant/llm.py`); no vendor-specific agent runtime required in this repo. |
 | **Portable K8s** | Base manifests are cloud-neutral; overlays only adjust ingress/LB annotations. |
 | **Registry-driven growth** | New platform capabilities onboard by extending `packages/platform-services/registry.yaml` and wiring tools — not by fork-lifting the agent. |
