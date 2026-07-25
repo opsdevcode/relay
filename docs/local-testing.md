@@ -11,7 +11,7 @@ make up          # start stack (no keys)
 make verify      # unit tests in container + HTTP smoke
 ```
 
-See also: [local-setup.md](local-setup.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
+See also: [local-setup.md](local-setup.md) · [corpus-pipeline.md](corpus-pipeline.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
 
@@ -109,6 +109,7 @@ Use **`make verify`** before pushing changes that touch the assistant, ingestion
 | `make security` | `python-quality-security.yml` → **Security (Bandit + pip-audit)** |
 | PR title + commits | `conventional-commits.yml` → **semantic-pull-request**, **commitlint** |
 | `make ci` | All of the above on the host (before opening a PR) |
+| `make backstage-test` | `backstage.yml` → **test** (when `apps/backstage/**` or `catalog/entities/**` change) |
 
 Docs-only PRs skip heavy steps via `.github/actions/ci-paths/` but checks still report success (required for rulesets). See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
@@ -116,16 +117,20 @@ Docs-only PRs skip heavy steps via `.github/actions/ci-paths/` but checks still 
 
 ## Adding tests with new behavior
 
-Every change to portal behavior should extend local testing in the same PR:
+**Every feature and fix ships with tests in the same PR** — do not defer coverage.
 
 | Change type | Required testing |
 | --- | --- |
 | New tool or draft shape | Unit test for draft + confirm; extend smoke if HTTP-facing |
-| RAG / ingest | Unit test for chunking/search helpers; smoke if default answers change |
+| RAG / ingest / corpus pipeline | Unit tests for helpers + webhook/CLI wiring; smoke if default answers change |
 | Registry entry | Test that registry loads (smoke already checks one ID) |
+| Catalog / Backstage config | `test_catalog_entities.py` / `test_backstage_config.py`; `make backstage-test` when `apps/backstage/**` changes |
 | Web UI only | Manual check in browser; prefer a small JS test or smoke note in PR |
+| Bug fix | Regression test that fails before the fix and passes after |
 
 **Scaffold example:** `test_confirm_scaffold_draft_uses_chat_draft_shape` ensures confirm reads `inputs.service_name` from drafts returned by `/chat` — the same JSON the web UI posts on Confirm.
+
+**Backstage (1C.1):** `make backstage-install && make backstage-test` (Node 22+). Catalog contract tests run in `make ci` without Node.
 
 ---
 
@@ -183,7 +188,8 @@ We treat local testing as **done for a release** when all of the following hold:
 | --- | --- |
 | `make bootstrap` | Create `.env` from example if missing |
 | `make up` / `make down` | Start/stop compose stack |
-| `make ingest` | Re-index knowledge corpus |
+| `make ingest` | Re-index knowledge corpus (upsert) |
+| `make ingest-full` | Delete all docs then re-index (drops stale chunks) |
 | `make install` | Install dev dependencies (`apps/relay-assistant[dev]`) |
 | `make ci` | Quality + security + unit tests (host) |
 | `make test-local` | Pytest only (host) |

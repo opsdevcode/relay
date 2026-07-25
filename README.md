@@ -24,14 +24,15 @@ Optional: set `ANTHROPIC_API_KEY` in `.env` for synthesized LLM answers instead 
 
 API: http://localhost:8080 · Health: http://localhost:8080/health
 
-To index a custom markdown tree, add `deploy/docker-compose.override.yml` (see `deploy/docker-compose.override.example.yml`).
+To index a custom markdown tree, add `deploy/docker-compose.override.yml` (see `deploy/docker-compose.override.example.yml`). Git sources, full reindex, and the reindex webhook: [docs/corpus-pipeline.md](docs/corpus-pipeline.md).
 
 ## Repo layout
 
 ```text
 apps/
   relay-assistant/      # FastAPI: chat, RAG, tools
-  web/                  # Static chat UI (Backstage plugin comes later)
+  web/                  # Static chat UI
+  backstage/            # Minimal Backstage (catalog imports catalog/entities/)
 packages/
   platform-services/    # Registry: knowledge + tools + views per capability
 knowledge/
@@ -43,9 +44,11 @@ deploy/
   docker-compose.yml
   k8s/base/             # Portable K8s (no cloud CRDs)
   k8s/overlays/         # aks | eks | gke — ingress/LB annotations only
-catalog/entities/       # Seed catalog-info.yaml for demo
+catalog/entities/       # Seed catalog.yaml for Backstage + demo
 docs/
 ```
+
+Backstage local: `make backstage-install && make backstage-dev` → http://localhost:3001 (see [`apps/backstage/README.md`](apps/backstage/README.md)).
 
 ## Architecture (working model)
 
@@ -66,10 +69,11 @@ Draft-and-route: mutating tools return a **draft**; the UI requires explicit con
 | Surface | Status |
 | --- | --- |
 | **Web** (embedded chat) | Working model — `apps/web/` |
+| **Backstage** (catalog) | Working model — `apps/backstage/` imports `catalog/entities/` |
 | **Microsoft Teams** | Planned — bot adapter on Relay API |
 | **Slack** | Planned — bot adapter on Relay API |
 
-Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend with channel-specific adapters.
+Backstage catalog is live locally (1C.1); chat embed is 1C.2. Teams and Slack reuse the same Relay API with channel-specific adapters.
 
 ## Kubernetes portability
 
@@ -81,14 +85,14 @@ Backstage (phase 2) embeds the web chat; Teams and Slack reuse the same backend 
 | Storage | `standard` StorageClass | Set per cluster in overlay |
 | Images | GHCR (`ghcr.io/opsdevcode/...`) | Same — any registry |
 
-See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md) · [docs/local-testing.md](docs/local-testing.md) · **[docs/roadmap.md](docs/roadmap.md)** (full plan)
+See [docs/kubernetes.md](docs/kubernetes.md) · [docs/security-governance.md](docs/security-governance.md) · [docs/local-testing.md](docs/local-testing.md) · [docs/corpus-pipeline.md](docs/corpus-pipeline.md) · **[docs/roadmap.md](docs/roadmap.md)** (full plan)
 
 ## Status
 
 | Phase | Scope |
 | --- | --- |
-| **Next** | Phase 1: hybrid RAG, Backstage slice, Redis sessions (1A.1 registry routing done) |
-| **Now** | Phase 0 demo hardening complete (corpus, UX, demo-api, demo script, CI) |
+| **Next** | Phase 1: corpus metadata (1B.3), embedded chat (1C.2), TechDocs/scaffolder (1C.3–1C.4), identity (1D) |
+| **Now** | Phase 1 pilot core — registry agent, hybrid RAG, corpus pipeline, minimal Backstage catalog (1C.1) |
 | **Later** | Governed actions at scale, Teams/Slack, managed K8s, platform-service v2/v3 |
 
 Details, milestones, and work item IDs: **[docs/roadmap.md](docs/roadmap.md)**.

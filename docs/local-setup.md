@@ -2,6 +2,8 @@
 
 For the full product roadmap (phases, milestones, platform services), see [roadmap.md](roadmap.md).
 
+For **corpus ingest** (Git sources, `make ingest-full`, reindex webhook), see [corpus-pipeline.md](corpus-pipeline.md).
+
 For **local testing** (`make ci`, `make smoke`, `make verify`), see [local-testing.md](local-testing.md).
 
 ## Prerequisites
@@ -58,5 +60,6 @@ make up
 Copy overrides into `.env` (created automatically from `.env.example` on `make up`):
 
 - `ANTHROPIC_API_KEY` — enable LLM synthesis mode
+- `INGEST_WEBHOOK_SECRET` — enable `POST /internal/reindex`
 
-To index a custom markdown tree instead of the bundled corpus, add `deploy/docker-compose.override.yml` (gitignored) with a different volume mount.
+To index a custom markdown tree instead of the bundled corpus, add `deploy/docker-compose.override.yml` (gitignored) with a different volume mount. For Git-backed standards repos and webhook reindex, see [corpus-pipeline.md](corpus-pipeline.md).

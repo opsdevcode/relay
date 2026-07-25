@@ -2,7 +2,7 @@
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
-**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
+**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
 
 ---
 
@@ -48,9 +48,10 @@ What ships in this repo today:
 | K8s manifests | Done (base) | Portal web + assistant; no in-cluster DB/corpus yet |
 | Local testing | Done (baseline) | `make ci`, `make smoke`, `make verify`; see [local-testing.md](local-testing.md) |
 | CI / PR workflow | Done | Repave-style workflows + ruleset JSON + [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| Backstage | Planned | `apps/backstage/README.md` placeholder |
+| Backstage | Done (1C.1) | `apps/backstage` imports `catalog/entities/catalog.yaml` (guest auth; port 3001) |
 | Teams / Slack | Planned | Same API; adapters not built |
 | Semantic RAG | Done (hybrid baseline) | Local hash embeddings + FTS RRF in Postgres/pgvector |
+| Corpus pipeline | Done (1B.2) | Filesystem + optional `type: git`; `make ingest-full`; `POST /internal/reindex` |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
 | Auth | Not started | Open API in local demo |
 | Real observability | Not started | `service_health` returns mock data |
@@ -183,7 +184,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | ID | Work | Exit criteria |
 | --- | --- | --- |
 | 1B.1 | Hybrid retrieval | Embeddings at ingest + FTS rank fusion in Postgres/pgvector — **done** (local embedder; swap in prod) |
-| 1B.2 | Corpus pipeline | Documented ingest from Git (standards repo, doc-as-code output); re-index job or webhook |
+| 1B.2 | Corpus pipeline | Documented ingest from Git (standards repo, doc-as-code output); re-index job or webhook — **done** (`docs/corpus-pipeline.md`, git sources, `POST /internal/reindex`, `make ingest-full`) |
 | 1B.3 | Metadata | Frontmatter (title, owner, updated); better chunk titles |
 | 1B.4 | Pluggable LLM client | Same interface for Anthropic, Azure OpenAI, or local model — org chooses in deploy config, not in this repo’s defaults |
 
@@ -193,7 +194,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 1C.1 | Minimal Backstage app | Catalog imports `catalog/entities/` |
+| 1C.1 | Minimal Backstage app | Catalog imports `catalog/entities/` — **done** (`apps/backstage`, `app-config.yaml` file location) |
 | 1C.2 | Embedded chat | iframe or plugin pointing at portal web UI / API |
 | 1C.3 | TechDocs | At least one entity with published docs from repo markdown |
 | 1C.4 | Scaffolder registration | Golden-path template registered; aligns with Actions workflow |
@@ -386,11 +387,13 @@ Current registered services (working model):
 
 ## Quick reference — what to build next
 
-Recommended order after Phase 0:
+Recommended order after Phase **1C.1**:
 
-1. Phase **1B.2** Corpus pipeline — documented ingest from Git; re-index job or webhook  
-2. Phase **1C.1** Minimal Backstage app — catalog imports `catalog/entities/`  
+1. Phase **1B.3** Metadata — frontmatter (title, owner, updated); better chunk titles
+2. Phase **1C.2** Embedded chat — iframe or plugin pointing at portal web UI / API
 
-Phase **1A.1–1A.4**, **1A.2** (write-path graph), and **1B.1** are on `main`.
+Phase **1A.***, **1B.1–1B.2**, and **1C.1** (minimal Backstage catalog) are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
+Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).
+Backstage: [`apps/backstage/README.md`](../apps/backstage/README.md).

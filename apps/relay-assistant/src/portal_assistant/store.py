@@ -132,6 +132,13 @@ class DocumentStore:
                 return 0
             return int(cast(dict[str, Any], row)["c"])
 
+    def delete_all(self) -> int:
+        """Remove every document row. Used by full corpus reindex."""
+        with self.connect() as conn:
+            row = conn.execute("DELETE FROM documents RETURNING id").fetchall()
+            conn.commit()
+        return len(list(row))
+
     def needs_embedding_backfill(self) -> bool:
         if not settings.hybrid_search_enabled or self.count() == 0:
             return False

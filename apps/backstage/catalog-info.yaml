@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: relay-backstage
+  title: Relay Backstage
+  description: Minimal Backstage app for the Relay IDP working model (catalog slice).
+  annotations:
+    github.com/project-slug: opsdevcode/relay
+spec:
+  type: website
+  owner: platform-team
+  lifecycle: experimental

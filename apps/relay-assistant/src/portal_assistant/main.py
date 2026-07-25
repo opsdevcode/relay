@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -34,28 +35,34 @@ class ConfirmRequest(BaseModel):
     draft: dict
 
 
+class ReindexRequest(BaseModel):
+    full: bool = False
+
+
 store = DocumentStore(settings.database_url)
 session_store: SessionStore | None = None
+
+
+def _run_ingest(*, full: bool = False) -> int:
+    from rag_ingestion.cli import ingest
+
+    return ingest(full=full)
 
 
 def _ensure_indexed() -> int:
     store.init_schema()
     if store.count() > 0 and store.needs_embedding_backfill():
         try:
-            from rag_ingestion.cli import ingest
-
             logger.info("Documents missing embeddings — re-ingesting for hybrid search")
-            ingest()
+            _run_ingest(full=True)
         except Exception:
             logger.exception("Embedding backfill ingestion failed")
             raise
     if store.count() > 0:
         return store.count()
     try:
-        from rag_ingestion.cli import ingest
-
         logger.info("Knowledge index empty — running startup ingestion")
-        ingest()
+        _run_ingest()
     except Exception:
         logger.exception("Startup ingestion failed")
         raise
@@ -145,3 +152,40 @@ async def confirm_action(body: ConfirmRequest) -> dict:
         }
 
     raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
+
+
+@app.post("/internal/reindex")
+def reindex_corpus(
+    body: ReindexRequest | None = None,
+    x_ingest_secret: str | None = Header(default=None, alias="X-Ingest-Secret"),
+) -> dict:
+    """Re-index knowledge sources (GitHub webhook / CronJob / operator curl).
+
+    Disabled until ``INGEST_WEBHOOK_SECRET`` is set. Callers must send the same
+    value in the ``X-Ingest-Secret`` header.
+    """
+    expected = settings.ingest_webhook_secret
+    if not expected:
+        raise HTTPException(status_code=503, detail="Reindex webhook not configured")
+    provided = x_ingest_secret or ""
+    try:
+        ok = bool(provided) and secrets.compare_digest(provided, expected)
+    except (TypeError, ValueError):
+        ok = False
+    if not ok:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    full = bool(body.full) if body else False
+    try:
+        chunks = _run_ingest(full=full)
+    except Exception as exc:
+        logger.exception("Reindex failed")
+        raise HTTPException(status_code=500, detail=f"Reindex failed: {exc}") from exc
+
+    return {
+        "status": "ok",
+        "full": full,
+        "chunks_indexed": chunks,
+        "documents": store.count(),
+        "retrieval_mode": store.retrieval_mode(),
+    }

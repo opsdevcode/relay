@@ -1,0 +1,28 @@
+# Example CronJob for full corpus reindex. Not in base/kustomization.yaml —
+# enable in an overlay once Postgres + knowledge mounts (or git sync) exist.
+# See docs/corpus-pipeline.md.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: relay-corpus-reindex
+  namespace: relay
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: ingest
+              image: ghcr.io/opsdevcode/relay-assistant:replace-me
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "rag_ingestion.cli", "ingest", "--full"]
+              envFrom:
+                - configMapRef:
+                    name: relay-assistant-config
+                - secretRef:
+                    name: relay-assistant-secrets
