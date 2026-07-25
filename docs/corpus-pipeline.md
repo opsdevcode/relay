@@ -23,6 +23,22 @@ make ingest-full     # delete all rows, then re-index
 Compose mounts `knowledge/corpus` → `/knowledge` in the assistant container.
 Chunk size / overlap live in `sources.yaml` under `chunk:`.
 
+### Frontmatter (optional)
+
+Markdown files may start with YAML frontmatter. Ingest strips it before chunking
+and uses:
+
+| Field | Purpose |
+| --- | --- |
+| `title` | Document title (default: filename stem) |
+| `owner` | Stored on each chunk row (`doc_owner`) for future ABAC |
+| `updated` | Stored as `doc_updated` (ISO date string recommended) |
+
+Multi-chunk docs get section-aware titles when a chunk begins with a `##`
+heading, e.g. `Resource Tagging Standard — Required tags`.
+
+Example: see `knowledge/corpus/standards/resource-tagging.md`.
+
 ---
 
 ## Source types

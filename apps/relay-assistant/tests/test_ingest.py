@@ -97,6 +97,35 @@ def test_ingest_filesystem_source(tmp_path: Path):
     assert any("Tagging policy" in c.content for c in store.chunks)
 
 
+def test_ingest_applies_frontmatter_and_section_titles(tmp_path: Path):
+    corpus = tmp_path / "docs"
+    corpus.mkdir()
+    (corpus / "tags.md").write_text(
+        """---
+title: Tagging Policy
+owner: platform-team
+updated: 2026-02-01
+---
+## Required tags
+
+Every resource needs an environment tag.
+"""
+    )
+    cfg = _write_sources(
+        tmp_path,
+        [{"name": "docs", "path": str(corpus), "glob": "**/*.md", "visibility": "public"}],
+    )
+    store = RecordingStore()
+    ingest(cfg, store=store, knowledge_path=str(tmp_path))  # type: ignore[arg-type]
+    assert len(store.chunks) == 1
+    chunk = store.chunks[0]
+    assert chunk.title == "Tagging Policy — Required tags"
+    assert chunk.doc_owner == "platform-team"
+    assert chunk.doc_updated == "2026-02-01"
+    assert "environment tag" in chunk.content
+    assert "---" not in chunk.content
+
+
 def test_ingest_full_clears_stale_chunks(tmp_path: Path):
     corpus = tmp_path / "docs"
     corpus.mkdir()

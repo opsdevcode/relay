@@ -1,3 +1,9 @@
+---
+title: Resource Tagging Standard
+owner: platform-team
+updated: 2026-01-15
+---
+
 # Resource Tagging Standard
 
 All cloud resources must carry mandatory tags for cost, ownership, security, and operations.

@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS documents (
 CREATE INDEX IF NOT EXISTS documents_content_tsv_idx ON documents USING GIN (content_tsv);
 
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS embedding vector(384);
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS doc_owner TEXT;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS doc_updated TEXT;
 """
 
 
@@ -54,11 +56,15 @@ class DocumentStore:
                     vector = to_vector_literal(embed_text(text, dimensions=dims))
                     cur.execute(
                         """
-                        INSERT INTO documents (source, title, content, visibility, embedding)
-                        VALUES (%s, %s, %s, %s, %s::vector)
+                        INSERT INTO documents (
+                            source, title, content, visibility, embedding, doc_owner, doc_updated
+                        )
+                        VALUES (%s, %s, %s, %s, %s::vector, %s, %s)
                         ON CONFLICT (source, title, content) DO UPDATE SET
                             visibility = EXCLUDED.visibility,
-                            embedding = EXCLUDED.embedding
+                            embedding = EXCLUDED.embedding,
+                            doc_owner = EXCLUDED.doc_owner,
+                            doc_updated = EXCLUDED.doc_updated
                         """,
                         (
                             chunk.source,
@@ -66,6 +72,8 @@ class DocumentStore:
                             chunk.content,
                             chunk.visibility,
                             vector,
+                            chunk.doc_owner or None,
+                            chunk.doc_updated or None,
                         ),
                     )
             conn.commit()
