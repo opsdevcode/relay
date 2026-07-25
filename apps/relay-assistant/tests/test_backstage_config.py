@@ -43,6 +43,20 @@ def test_backstage_frontend_port_avoids_relay_web():
     assert cors_origin == "http://localhost:3001"
 
 
+def test_backstage_embeds_relay_chat_url():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    embed_url = (data.get("relay") or {}).get("chatEmbedUrl", "")
+    assert embed_url == "http://localhost:3000", (
+        f"expected relay.chatEmbedUrl for local web UI, got {embed_url!r}"
+    )
+
+
+def test_backstage_csp_allows_chat_embed_frame():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    frame_src = ((data.get("backend") or {}).get("csp") or {}).get("frame-src") or []
+    assert "http://localhost:3000" in frame_src
+
+
 def test_seed_catalog_path_resolves_from_backend_cwd():
     """Mirrors Backstage file location resolution from packages/backend."""
     backend_cwd = REPO_ROOT / "apps" / "backstage" / "packages" / "backend"

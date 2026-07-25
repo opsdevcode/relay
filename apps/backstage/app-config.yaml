@@ -14,6 +14,10 @@ app:
 organization:
   name: opsdevcode
 
+# Relay web UI embedded in Backstage (Phase 1C.2). Override in production deploy config.
+relay:
+  chatEmbedUrl: http://localhost:3000
+
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
   # See https://backstage.io/docs/auth/service-to-service-auth for
@@ -28,6 +32,7 @@ backend:
     # host: 127.0.0.1
   csp:
     connect-src: ["'self'", 'http:', 'https:']
+    frame-src: ["'self'", 'http://localhost:3000']
     # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
     # Default Helmet Content-Security-Policy values can be removed by setting the key to false
   cors:

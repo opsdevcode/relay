@@ -195,7 +195,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | ID | Work | Exit criteria |
 | --- | --- | --- |
 | 1C.1 | Minimal Backstage app | Catalog imports `catalog/entities/` — **done** (`apps/backstage`, `app-config.yaml` file location) |
-| 1C.2 | Embedded chat | iframe or plugin pointing at portal web UI / API |
+| 1C.2 | Embedded chat | iframe or plugin pointing at portal web UI / API — **done** (`/relay`, `relay.chatEmbedUrl`) |
 | 1C.3 | TechDocs | At least one entity with published docs from repo markdown |
 | 1C.4 | Scaffolder registration | Golden-path template registered; aligns with Actions workflow |
 
@@ -389,7 +389,7 @@ Current registered services (working model):
 
 Recommended order after Phase **1B.3**:
 
-1. Phase **1C.2** Embedded chat — iframe or plugin pointing at portal web UI / API
+1. Phase **1B.4** Pluggable LLM client — same interface for Anthropic, Azure OpenAI, or local model
 2. Phase **1B.4** Pluggable LLM client — org-chosen synthesis backend in deploy config
 
 Phase **1A.***, **1B.1–1B.3**, and **1C.1** are on `main`.
