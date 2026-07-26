@@ -28,4 +28,6 @@ subst < "$TEMPLATE/README.md" > "$DEST/README.md"
 subst < "$TEMPLATE/src/main.py" > "$DEST/src/main.py"
 subst < "$TEMPLATE/deploy/k8s/manifests.yaml" > "$DEST/deploy/k8s/manifests.yaml"
 
+PYTHONPATH="$ROOT/apps/relay-assistant/src" python3 "$ROOT/scripts/register-scaffold-catalog-location.py" "$SERVICE_NAME"
+
 echo "Rendered $SERVICE_NAME -> $DEST"

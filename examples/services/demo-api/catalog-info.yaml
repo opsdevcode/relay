@@ -5,6 +5,8 @@ metadata:
   description: Demo API golden path example
   annotations:
     github.com/project-slug: opsdevcode/demo-api
+    relay.dev/scaffold-template: k8s-golden-path
+    relay.dev/scaffold-path: examples/services/demo-api
 spec:
   type: service
   lifecycle: experimental
