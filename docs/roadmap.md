@@ -227,7 +227,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 2A.1 | Golden-path scaffold PR | Workflow opens PR under agreed path; includes `catalog-info.yaml` stamp — **done** (`scaffold-k8s-service.yml`, [scaffolding.md](../docs/scaffolding.md)) |
+| 2A.1 | Golden-path scaffold PR | Workflow opens PR under agreed path; includes `catalog-info.yaml` stamp — **done** (`scaffold-k8s-service.yml`, `relay.dev/*` stamp, Backstage Location) |
 | 2A.2 | Ticket system handoff | Replace sandbox issue stub with ServiceNow/Jira (or org standard) via approved integration — **done** (`ticket_intake.py`, [ticket-intake.md](../docs/ticket-intake.md)) |
 | 2A.3 | Risk-tier aware drafts | PR templates respect CODEOWNERS / change tiers documented in knowledge corpus |
 | 2A.4 | Audit log | Prompt, retrieval sources, tool calls, confirm events persisted and queryable |

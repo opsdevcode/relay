@@ -5,6 +5,8 @@ metadata:
   description: {{ description | default("Containerized service") }}
   annotations:
     github.com/project-slug: {{ github_org }}/{{ service_name }}
+    relay.dev/scaffold-template: k8s-golden-path
+    relay.dev/scaffold-path: examples/services/{{ service_name }}
 spec:
   type: service
   lifecycle: experimental

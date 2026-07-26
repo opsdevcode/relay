@@ -9,6 +9,22 @@ The working model uses **draft-and-route**: the Portal Assistant prepares a scaf
 3. UI opens `Scaffold K8s Service` on GitHub Actions with suggested inputs
 4. You click **Run workflow** in GitHub
 5. Actions renders `templates/k8s-service/` into `examples/services/<name>/` and opens a PR using the built-in `GITHUB_TOKEN`
+6. The PR includes a stamped **`catalog-info.yaml`** (`relay.dev/scaffold-template`, `relay.dev/scaffold-path`) and updates **`catalog/entities/scaffolded-services.yaml`** so Backstage imports the new component after merge.
+
+## Agreed output path (Phase 2A.1)
+
+| Artifact | Location |
+| --- | --- |
+| Service tree | `examples/services/<service_name>/` |
+| Catalog entity | `examples/services/<service_name>/catalog-info.yaml` |
+| Backstage Location index | `catalog/entities/scaffolded-services.yaml` (appended by workflow) |
+
+Stamp annotations:
+
+| Annotation | Meaning |
+| --- | --- |
+| `relay.dev/scaffold-template` | Always `k8s-golden-path` for this workflow |
+| `relay.dev/scaffold-path` | Repo path to the scaffolded service root |
 
 ## Backstage Create (optional)
 
@@ -33,6 +49,7 @@ No repository secrets are required for the default same-repo scaffold PR.
 | `service_name` | Kebab-case name (e.g. `demo-api`) |
 | `description` | Catalog/description string |
 | `github_org` | Org for image/catalog slug (default `opsdevcode`) |
+| `owner` | Backstage `spec.owner` team (default `platform-team`) |
 
 ## API
 

@@ -116,6 +116,12 @@ catalog:
       rules:
         - allow: [Component, User, Group]
 
+    # Scaffolded golden-path services (Phase 2A.1) — Location lists examples/services/*
+    - type: file
+      target: ../../../../catalog/entities/scaffolded-services.yaml
+      rules:
+        - allow: [Location]
+
     # Golden-path software template (Phase 1C.4) → scaffold-k8s-service.yml
     - type: file
       target: ../../../../templates/k8s-service/template.yaml
