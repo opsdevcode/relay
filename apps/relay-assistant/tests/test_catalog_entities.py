@@ -50,6 +50,24 @@ def test_catalog_component_owners_resolve_to_group():
         )
 
 
+def test_relay_component_has_techdocs_ref():
+    entities = _load_entities(CATALOG_PATH)
+    relay = next(
+        e
+        for e in entities
+        if e.get("kind") == "Component" and (e.get("metadata") or {}).get("name") == "relay"
+    )
+    annotations = (relay.get("metadata") or {}).get("annotations") or {}
+    assert annotations.get("backstage.io/techdocs-ref") == "dir:../../docs/techdocs/relay"
+
+
+def test_relay_techdocs_mkdocs_site_exists():
+    mkdocs = REPO_ROOT / "docs" / "techdocs" / "relay" / "mkdocs.yml"
+    index = REPO_ROOT / "docs" / "techdocs" / "relay" / "docs" / "index.md"
+    assert mkdocs.is_file(), f"missing TechDocs mkdocs.yml: {mkdocs}"
+    assert index.is_file(), f"missing TechDocs index: {index}"
+
+
 def test_catalog_guest_user_member_of_platform_team():
     entities = _load_entities(CATALOG_PATH)
     guest = next(

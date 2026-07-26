@@ -3,9 +3,10 @@
 Minimal Backstage app whose **software catalog** imports the repo-root seed at
 [`catalog/entities/`](../../catalog/entities/). **Relay Assistant** chat is
 embedded at `/relay` via iframe (1C.2) pointing at `relay.chatEmbedUrl`
-(default `http://localhost:3000`).
+(default `http://localhost:3000`). **TechDocs** for the **Relay** component (1C.3)
+publishes markdown from [`docs/techdocs/relay/`](../../docs/techdocs/relay/).
 
-TechDocs and Scaffolder registration are later roadmap items (1C.3 / 1C.4).
+Scaffolder registration is a later roadmap item (1C.4).
 
 ## Prerequisites
 
@@ -47,6 +48,13 @@ accordingly.
 (relative to `packages/backend`). Adding entities: edit that YAML (or add more
 `*.yaml` files under `catalog/entities/` and another location entry).
 
+## TechDocs (1C.3)
+
+The **Relay** component annotation `backstage.io/techdocs-ref` points at
+`docs/techdocs/relay/` (MkDocs + `techdocs-core`). Open **Catalog → Relay → Docs**.
+The first build uses the Docker generator (`techdocs.generator.runIn: docker` in
+`app-config.yaml`); keep Docker running locally.
+
 ## Tests
 
 | Layer | Command |
@@ -58,8 +66,7 @@ accordingly.
 New catalog entities or Backstage config changes **must** update contract tests and
 Playwright specs in the same PR ([docs/tdd.md](../../docs/tdd.md)).
 
-## Next (not in 1C.2)
+## Next (not in 1C.3)
 
-1. TechDocs for at least one entity (1C.3)
-2. Register `templates/k8s-service/` as a Scaffolder template (1C.4)
-3. GitHub org discovery / OAuth for non-prod
+1. Register `templates/k8s-service/` as a Scaffolder template (1C.4)
+2. GitHub org discovery / OAuth for non-prod

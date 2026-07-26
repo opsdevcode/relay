@@ -6,11 +6,13 @@ on:
     paths:
       - "apps/backstage/**"
       - "catalog/entities/**"
+      - "docs/techdocs/**"
       - ".github/workflows/backstage.yml"
   pull_request:
     paths:
       - "apps/backstage/**"
       - "catalog/entities/**"
+      - "docs/techdocs/**"
       - ".github/workflows/backstage.yml"
 
 permissions:

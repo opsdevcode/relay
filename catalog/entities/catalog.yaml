@@ -6,6 +6,7 @@ metadata:
   description: Conversational internal developer portal working model
   annotations:
     github.com/project-slug: opsdevcode/relay
+    backstage.io/techdocs-ref: dir:../../docs/techdocs/relay
   tags:
     - platform
     - portal

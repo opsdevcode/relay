@@ -1,0 +1,7 @@
+site_name: Relay
+site_description: Relay internal developer portal — local working model
+nav:
+  - Overview: index.md
+  - Local setup: local-setup.md
+plugins:
+  - techdocs-core
