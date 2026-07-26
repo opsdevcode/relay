@@ -27,3 +27,7 @@ kubectl apply -f deploy/k8s/
 ```
 
 Adjust `deploy/k8s/` ingress class and image registry for your cluster overlay.
+
+## Backstage
+
+Software template descriptor: [`template.yaml`](template.yaml) (registered in Backstage catalog, Phase 1C.4).

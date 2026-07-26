@@ -10,6 +10,12 @@ The working model uses **draft-and-route**: the Portal Assistant prepares a scaf
 4. You click **Run workflow** in GitHub
 5. Actions renders `templates/k8s-service/` into `examples/services/<name>/` and opens a PR using the built-in `GITHUB_TOKEN`
 
+## Backstage Create (optional)
+
+In **Backstage** (`make backstage-dev` → **Create**), the **K8s Service (Golden Path)** template
+collects the same inputs and can dispatch `scaffold-k8s-service.yml` when `GITHUB_TOKEN` is
+configured for the Backstage backend (`app-config.yaml` → `integrations.github`).
+
 ## Enable the workflow (one-time, in GitHub UI)
 
 In **`opsdevcode/relay`**:

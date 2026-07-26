@@ -1,0 +1,54 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: k8s-golden-path
+  title: K8s Service (Golden Path)
+  description: |
+    Scaffold a containerized service using `templates/k8s-service/` via the
+    **Scaffold K8s Service** GitHub Actions workflow (same flow as Relay chat confirm).
+    Set `GITHUB_TOKEN` on the Backstage backend to dispatch from the UI; otherwise use
+    the output link to run the workflow manually on GitHub.
+  tags:
+    - recommended
+    - kubernetes
+spec:
+  owner: group:platform-team
+  type: service
+
+  parameters:
+    - title: Service identity
+      required:
+        - service_name
+      properties:
+        service_name:
+          title: Service name
+          type: string
+          description: Kebab-case (e.g. demo-api). Output lands in examples/services/<name>/
+          pattern: '^[a-z][a-z0-9-]{1,62}$'
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          default: Containerized service
+        github_org:
+          title: GitHub org (image/catalog slug)
+          type: string
+          default: opsdevcode
+
+  steps:
+    - id: dispatch
+      name: Dispatch scaffold workflow
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?repo=relay&owner=opsdevcode
+        workflowId: scaffold-k8s-service.yml
+        branchOrTagName: main
+        workflowInputs:
+          service_name: ${{ parameters.service_name }}
+          description: ${{ parameters.description }}
+          github_org: ${{ parameters.github_org }}
+
+  output:
+    links:
+      - title: GitHub Actions — Scaffold K8s Service
+        url: https://github.com/opsdevcode/relay/actions/workflows/scaffold-k8s-service.yml
