@@ -134,8 +134,8 @@ Flow:
 
 1. Merge a PR to `main` with a conventional title (`feat:`, `fix:`, etc.).
 2. CI runs; the **Release** workflow (non-docs-only paths) runs tests, bumps version,
-   updates `CHANGELOG.md`, tags `vX.Y.Z`, and publishes a GitHub Release with wheel/sdist
-   artifacts.
+   opens a **`chore/release/*` PR**, admin-merges it to `main`, tags `vX.Y.Z`, and publishes
+   a GitHub Release with wheel/sdist artifacts.
 3. No separate release PR is required.
 
 The **Release** workflow does not run when a push to `main` only touches docs-only paths
@@ -145,9 +145,10 @@ Changelog: [`apps/relay-assistant/CHANGELOG.md`](apps/relay-assistant/CHANGELOG.
 
 ## Maintainer setup
 
-`main` is protected; release commits must push version bumps back to `main`. The release
-workflow uses repository secret **`RELAY_RELEASE_TOKEN`**: a fine-grained or classic PAT
-owned by a maintainer with `contents: write` on this repository.
+`main` is protected; release commits must land via PR. The release workflow uses
+repository secret **`RELAY_RELEASE_TOKEN`**: a fine-grained or classic PAT owned by a
+maintainer with **`contents: write`** and permission to **bypass branch protections**
+(admin merge), same pattern as repave’s `REPAVE_RELEASE_TOKEN`.
 
 ```bash
 gh secret set RELAY_RELEASE_TOKEN --repo opsdevcode/relay
@@ -172,6 +173,9 @@ gh workflow run Release --repo opsdevcode/relay --ref main
 
 3. **Commit type** — Only `feat` / `fix` / breaking commits since the last tag produce a bump.
    The PR #1 squash title was `ci:` (no release). PR #2 was `feat:` (should release **v0.2.0** once the workflow succeeds).
+4. **GH013 push rejected** — If Release fails with “Changes must be made through a pull request”,
+   the workflow could not admin-merge the automated `chore/release/*` PR. Use an administrator PAT
+   for `RELAY_RELEASE_TOKEN`, or re-run Release after updating `.github/workflows/release.yml`.
 
 ## Pull requests
 

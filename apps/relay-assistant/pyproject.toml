@@ -73,5 +73,5 @@ version_variables = ["src/portal_assistant/__init__.py:__version__"]
 tag_format = "v{version}"
 commit_message = "chore(release): {version}"
 build_command = "python -m build"
-upload_to_vcs_release = true
+upload_to_vcs_release = false
 upload_to_pypi = false

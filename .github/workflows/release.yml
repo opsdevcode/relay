@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -34,6 +35,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELAY_RELEASE_TOKEN }}
+          persist-credentials: false
 
       - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
@@ -52,7 +54,81 @@ jobs:
         run: python -m pytest -q
 
       - name: Create GitHub release on conventional commits
-        working-directory: apps/relay-assistant
         env:
           GH_TOKEN: ${{ secrets.RELAY_RELEASE_TOKEN }}
-        run: semantic-release version
+          RELEASE_TOKEN: ${{ secrets.RELAY_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${RELEASE_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          # PSR reads GITHUB_OUTPUT for commit_sha; unset when using --no-push/--no-tag.
+          psr() {
+            (cd apps/relay-assistant && env -u GITHUB_OUTPUT semantic-release "$@")
+          }
+
+          publish_github_release() {
+            local tag="$1"
+            local version="${tag#v}"
+            git fetch origin "refs/tags/${tag}:refs/tags/${tag}" 2>/dev/null || true
+            git checkout "${tag}"
+            cd apps/relay-assistant
+            python -m build
+            if gh release view "${tag}" >/dev/null 2>&1; then
+              echo "GitHub release ${tag} already exists."
+              cd "${GITHUB_WORKSPACE}"
+              git fetch origin main
+              git checkout -B main origin/main
+              return 0
+            fi
+            gh release create "${tag}" dist/* \
+              --title "relay-assistant ${version}" \
+              --generate-notes
+            cd "${GITHUB_WORKSPACE}"
+            git fetch origin main
+            git checkout -B main origin/main
+          }
+
+          git fetch origin main
+          git checkout -B main origin/main
+
+          LATEST_TAG="$(git tag -l 'v*' --sort=-v:refname | head -1 || true)"
+          if [ -n "${LATEST_TAG}" ] && ! gh release view "${LATEST_TAG}" >/dev/null 2>&1; then
+            echo "Repairing missing GitHub release for ${LATEST_TAG}."
+            publish_github_release "${LATEST_TAG}"
+            git fetch origin main
+            git checkout -B main origin/main
+          fi
+
+          BEFORE="$(git rev-parse HEAD)"
+          psr version --no-push --no-tag
+          AFTER="$(git rev-parse HEAD)"
+          if [ "${BEFORE}" = "${AFTER}" ]; then
+            echo "No release needed."
+            exit 0
+          fi
+
+          VERSION="$(grep '^version =' apps/relay-assistant/pyproject.toml | sed 's/version = "\(.*\)"/\1/')"
+          TAG="v${VERSION}"
+          BRANCH="chore/release-${VERSION}"
+          RELEASE_SHA="$(git rev-parse HEAD)"
+
+          git push origin "${RELEASE_SHA}:refs/heads/${BRANCH}"
+
+          EXISTING="$(gh pr list --head "${BRANCH}" --base main --json number --jq '.[0].number // empty')"
+          if [ -z "${EXISTING}" ]; then
+            gh pr create --base main --head "${BRANCH}" \
+              --title "chore(release): ${VERSION}" \
+              --body "Automated semantic-release publish."
+          fi
+
+          gh pr merge "${BRANCH}" --merge --delete-branch --admin
+
+          git fetch origin main
+          git checkout -B main origin/main
+
+          git tag -f "${TAG}" "${RELEASE_SHA}"
+          git push origin "refs/tags/${TAG}" --force
+
+          publish_github_release "${TAG}"
