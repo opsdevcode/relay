@@ -12,3 +12,5 @@ data:
   USER_CONTEXT_HEADERS_ENABLED: "false"
   CONFIRM_ACTION_AUTHORIZATION_ENABLED: "false"
   TICKET_INTAKE_PROVIDER: github_issue
+  # OBSERVABILITY_PROVIDER: grafana_deeplink
+  # GRAFANA_BASE_URL: https://grafana.example.com

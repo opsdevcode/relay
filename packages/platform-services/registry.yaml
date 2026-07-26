@@ -51,7 +51,7 @@ services:
 
   - id: observability-insight
     name: Observability Insight
-    description: Service health / SLO read (mock in working model)
+    description: Service health / SLO read (Grafana deeplink + optional Prometheus)
     phase: v1
     tools:
       - service_health
@@ -99,3 +99,14 @@ tools:
     confirm_allowed_groups:
       - relay-platform-admins
       - relay-sandbox-users
+
+# Pilot service → Grafana dashboard mapping (Phase 2B.1). Extend for design partners.
+observability:
+  grafana_path_template: "/d/{dashboard_uid}?orgId=1&var-service={service}"
+  catalog:
+    demo-api:
+      dashboard_uid: relay-demo
+      slo_target: "99.9%"
+    payments-api:
+      dashboard_uid: payments-overview
+      slo_target: "99.95%"

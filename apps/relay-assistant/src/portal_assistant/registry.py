@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -84,10 +84,23 @@ class RoutingRule:
 
 
 @dataclass(frozen=True)
+class ObservabilityServiceEntry:
+    dashboard_uid: str = ""
+    slo_target: str = ""
+
+
+@dataclass(frozen=True)
+class ObservabilityRegistry:
+    grafana_path_template: str = "/d/{dashboard_uid}?var-service={service}"
+    catalog: dict[str, ObservabilityServiceEntry] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class RegistryConfig:
     services: list[dict[str, Any]]
     routing: list[RoutingRule]
     tools: dict[str, ToolDefinition]
+    observability: ObservabilityRegistry | None = None
 
     def tool_definition(self, tool_id: str) -> ToolDefinition:
         return self.tools.get(tool_id, ToolDefinition(kind="read"))
@@ -98,6 +111,30 @@ class RegistryConfig:
 
 def registry_path() -> Path:
     return Path(__file__).resolve().parents[4] / "packages" / "platform-services" / "registry.yaml"
+
+
+def _parse_observability(raw: dict[str, Any] | None) -> ObservabilityRegistry | None:
+    if not raw or not isinstance(raw, dict):
+        return None
+    path_template = str(
+        raw.get("grafana_path_template") or "/d/{dashboard_uid}?var-service={service}"
+    ).strip()
+    catalog: dict[str, ObservabilityServiceEntry] = {}
+    catalog_raw = raw.get("catalog") or raw.get("services") or {}
+    if isinstance(catalog_raw, dict):
+        for key, entry in catalog_raw.items():
+            if not isinstance(entry, dict):
+                continue
+            slug = str(key).strip().lower()
+            if not slug:
+                continue
+            catalog[slug] = ObservabilityServiceEntry(
+                dashboard_uid=str(
+                    entry.get("dashboard_uid") or entry.get("dashboard") or ""
+                ).strip(),
+                slo_target=str(entry.get("slo_target") or entry.get("slo") or "").strip(),
+            )
+    return ObservabilityRegistry(grafana_path_template=path_template, catalog=catalog)
 
 
 def load_registry_config(path: Path | None = None) -> RegistryConfig:
@@ -142,8 +179,14 @@ def load_registry_config(path: Path | None = None) -> RegistryConfig:
 
     tools_raw = raw.get("tools")
     tools = _parse_tools(tools_raw if isinstance(tools_raw, dict) else None)
+    observability = _parse_observability(raw.get("observability"))
 
-    return RegistryConfig(services=services, routing=routing, tools=tools)
+    return RegistryConfig(
+        services=services,
+        routing=routing,
+        tools=tools,
+        observability=observability,
+    )
 
 
 def _legacy_routing_from_agent() -> list[RoutingRule]:

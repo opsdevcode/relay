@@ -4,6 +4,7 @@ import re
 
 from portal_assistant.audit_log import EVENT_RETRIEVAL, AuditActor, AuditLogStore
 from portal_assistant.llm import synthesize
+from portal_assistant.observability import fetch_service_health, format_service_health_answer
 from portal_assistant.registry import load_registry_config
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
 from portal_assistant.scaffold import build_workflow_dispatch
@@ -43,16 +44,6 @@ def extract_service_name(message: str) -> str:
 
 def slugify_name(name: str) -> str:
     return re.sub(r"[^a-z0-9-]+", "-", name.lower()).strip("-") or "demo-service"
-
-
-def service_health(service_name: str) -> dict:
-    return {
-        "service": service_name,
-        "status": "mock",
-        "slo": {"target": "99.9%", "burn_rate": "0.2", "window": "30d"},
-        "alerts": [],
-        "note": "Connect observability MCP tool to your metrics stack in production.",
-    }
 
 
 def draft_scaffold(service_name: str, description: str = "") -> dict:
@@ -112,14 +103,9 @@ async def dispatch_tool(
 
     if tool_id == "service_health":
         name = extract_service_name(message)
-        health = service_health(name)
+        health = await fetch_service_health(name)
         return {
-            "answer": (
-                f"**{health['service']}** (mock insight)\n"
-                f"- SLO target: {health['slo']['target']}\n"
-                f"- Burn rate: {health['slo']['burn_rate']}\n"
-                f"- {health['note']}"
-            ),
+            "answer": format_service_health_answer(health),
             "citations": [],
             "draft": None,
         }
