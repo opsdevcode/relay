@@ -2,7 +2,7 @@
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
-**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [tdd.md](tdd.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [ticket-intake.md](ticket-intake.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
+**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [tdd.md](tdd.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [ticket-intake.md](ticket-intake.md) · [audit-log.md](audit-log.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
 
 ---
 
@@ -230,7 +230,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 | 2A.1 | Golden-path scaffold PR | Workflow opens PR under agreed path; includes `catalog-info.yaml` stamp — **done** (`scaffold-k8s-service.yml`, `relay.dev/*` stamp, Backstage Location) |
 | 2A.2 | Ticket system handoff | Replace sandbox issue stub with ServiceNow/Jira (or org standard) via approved integration — **done** (`ticket_intake.py`, [ticket-intake.md](../docs/ticket-intake.md)) |
 | 2A.3 | Risk-tier aware drafts | PR templates respect CODEOWNERS / change tiers documented in knowledge corpus — **done** (`risk_tiers.py`, PR template, scaffold workflow body) |
-| 2A.4 | Audit log | Prompt, retrieval sources, tool calls, confirm events persisted and queryable |
+| 2A.4 | Audit log | Prompt, retrieval sources, tool calls, confirm events persisted and queryable — **done** (`audit_log.py`, [audit-log.md](../docs/audit-log.md)) |
 
 ### Workstream 2B — Observability
 
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2A.4** Audit log — prompt, retrieval, tool calls, confirm events persisted
+1. Phase **2B.1** Real `service_health` — read-only query or deep link to Grafana for cataloged services
 
-Phase **1** workstreams **1A–1D** and **2A.1–2A.3** are on `main`.
+Phase **1** workstreams **1A–1D** and **2A** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

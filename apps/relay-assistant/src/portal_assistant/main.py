@@ -12,6 +12,11 @@ from pydantic import BaseModel, Field
 from portal_assistant import __version__
 from portal_assistant.action_authorization import require_confirm_authorization
 from portal_assistant.agent import handle_message
+from portal_assistant.audit_log import (
+    EVENT_CONFIRM,
+    AuditActor,
+    AuditLogStore,
+)
 from portal_assistant.config import settings
 from portal_assistant.llm_providers import resolve_synthesis_provider
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
@@ -59,6 +64,7 @@ class ReindexRequest(BaseModel):
 
 
 store = DocumentStore(settings.database_url)
+audit_store = AuditLogStore(settings.database_url)
 session_store: SessionStore | None = None
 
 
@@ -70,6 +76,7 @@ def _run_ingest(*, full: bool = False) -> int:
 
 def _ensure_indexed() -> int:
     store.init_schema()
+    audit_store.init_schema()
     if store.count() > 0 and store.needs_embedding_backfill():
         try:
             logger.info("Documents missing embeddings — re-ingesting for hybrid search")
@@ -126,6 +133,7 @@ def health() -> dict:
         "user_context_headers_enabled": settings.user_context_headers_enabled,
         "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
         "ticket_intake_provider": resolve_ticket_intake_provider(settings),
+        "audit_log_enabled": settings.audit_log_enabled,
     }
 
 
@@ -160,6 +168,7 @@ async def chat(
         session_store=session_store,
         thread_id=body.thread_id,
         user=user,
+        audit=audit_store,
     )
     return ChatResponse(**result)
 
@@ -184,7 +193,13 @@ async def confirm_action(
     require_confirm_authorization(user, str(action))
 
     if action == "scaffold_service":
-        return confirm_scaffold_draft(draft)
+        response = confirm_scaffold_draft(draft)
+        audit_store.record(
+            EVENT_CONFIRM,
+            payload={"action": action, "status": response.get("status"), "draft_action": action},
+            actor=AuditActor.from_user(user),
+        )
+        return response
 
     if action == "request_sandbox":
         try:
@@ -194,7 +209,18 @@ async def confirm_action(
         except httpx.HTTPError as exc:
             logger.exception("Ticket intake failed")
             raise HTTPException(status_code=502, detail="Ticket system handoff failed") from exc
-        return result.as_response()
+        response = result.as_response()
+        audit_store.record(
+            EVENT_CONFIRM,
+            payload={
+                "action": action,
+                "status": response.get("status"),
+                "provider": response.get("provider"),
+                "ticket_id": response.get("ticket_id"),
+            },
+            actor=AuditActor.from_user(user),
+        )
+        return response
 
     raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
 
@@ -234,3 +260,25 @@ def reindex_corpus(
         "documents": store.count(),
         "retrieval_mode": store.retrieval_mode(),
     }
+
+
+@app.get("/internal/audit-events")
+def list_audit_events(
+    limit: int = 50,
+    thread_id: str | None = None,
+    event_type: str | None = None,
+    x_audit_secret: str | None = Header(default=None, alias="X-Audit-Secret"),
+) -> dict:
+    """Query persisted audit events (operators / compliance). Requires ``AUDIT_QUERY_SECRET``."""
+    expected = settings.audit_query_secret
+    if not expected:
+        raise HTTPException(status_code=503, detail="Audit query not configured")
+    provided = x_audit_secret or ""
+    try:
+        ok = bool(provided) and secrets.compare_digest(provided, expected)
+    except (TypeError, ValueError):
+        ok = False
+    if not ok:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    events = audit_store.query(limit=limit, thread_id=thread_id, event_type=event_type)
+    return {"events": events, "count": len(events)}
