@@ -18,6 +18,24 @@ Local compose defaults to **`mock`** (no Grafana/Prometheus URLs). Production se
 | `mock` | Placeholder insight for local dev |
 | `grafana_deeplink` | Catalog SLO + Grafana URL (read-only; no metrics API) |
 | `prometheus` | Grafana URL when configured + Prometheus instant queries |
+| `grafana_deeplink` + **`PROMETHEUS_BASE_URL`** | Grafana link **and** live SLO summary (burn rate + firing alerts) in chat — Phase **2B.3** |
+
+## SLO summary in chat (Phase 2B.3)
+
+When **`PROMETHEUS_BASE_URL`** is set, `service_health` runs read-only PromQL (alerts + optional burn rate) even if `OBSERVABILITY_PROVIDER=grafana_deeplink`. Chat answers use **SLO summary (live)** with:
+
+- SLO target from registry catalog
+- **Burn rate** (when `PROMETHEUS_BURN_RATE_QUERY_TEMPLATE` or registry template is set)
+- **Firing alerts** count (default `ALERTS{alertstate="firing",service="…"}` template)
+
+`/health` includes `observability_metrics_live` when Prometheus is configured.
+
+Registry optional templates (override env):
+
+```yaml
+observability:
+  prometheus_burn_rate_query_template: 'slo:burnrate30d{service="{service}"}'
+```
 
 ## Environment
 
@@ -87,5 +105,5 @@ Extend Backstage `backend.csp.frame-src` with your Grafana origin (local app-con
 
 ## Related
 
-- [roadmap.md](roadmap.md) — Phase 2B.3 SLO summary in chat
+- [roadmap.md](roadmap.md) — Phase 2C catalog discovery
 - [audit-log.md](audit-log.md) — tool invoke audit events

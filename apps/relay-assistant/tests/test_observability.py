@@ -75,6 +75,38 @@ async def test_fetch_service_health_grafana_catalog():
     assert result.grafana_url is not None
     assert "pay-dash" in result.grafana_url
     assert result.slo["target"] == "99.95%"
+    assert result.metrics_live is False
+
+
+@pytest.mark.asyncio
+async def test_fetch_service_health_grafana_with_prometheus_metrics():
+    obs = ObservabilityRegistry(catalog={})
+
+    async def fake_scalar(**kwargs):
+        if "ALERTS" in kwargs.get("query", ""):
+            return 1.0
+        return 0.5
+
+    with patch(
+        "portal_assistant.observability._prometheus_scalar",
+        new=AsyncMock(side_effect=fake_scalar),
+    ):
+        result = await fetch_service_health(
+            "demo-api",
+            cfg=Settings(
+                observability_provider="grafana_deeplink",
+                grafana_base_url="https://grafana.example.com",
+                grafana_default_dashboard_uid="relay-demo",
+                prometheus_base_url="https://prom.example.com",
+                prometheus_burn_rate_query_template='burn{service="{service}"}',
+            ),
+            obs_registry=obs,
+        )
+    assert result.mode == "grafana_deeplink"
+    assert result.metrics_live is True
+    assert result.status == "degraded"
+    assert result.slo["burn_rate"] == "0.50"
+    assert result.alerts[0]["count"] == 1
 
 
 @pytest.mark.asyncio
@@ -97,6 +129,7 @@ async def test_fetch_service_health_prometheus_alerts():
             obs_registry=obs,
         )
     assert result.mode == "prometheus"
+    assert result.metrics_live is True
     assert result.status == "degraded"
     assert result.alerts[0]["count"] == 2
 
@@ -122,6 +155,24 @@ async def test_fetch_service_health_prometheus_http_error():
         )
     assert result.note is not None
     assert "Prometheus" in result.note
+
+
+def test_format_service_health_answer_live_slo_summary():
+    text = format_service_health_answer(
+        {
+            "service": "demo-api",
+            "mode": "grafana_deeplink",
+            "metrics_live": True,
+            "status": "ok",
+            "slo": {"target": "99.9%", "burn_rate": "0.42", "window": "30d"},
+            "alerts": [],
+            "grafana_url": "https://grafana.example.com/d/x",
+            "note": None,
+        }
+    )
+    assert "SLO summary (live)" in text
+    assert "Firing alerts: 0" in text
+    assert "Burn rate: 0.42" in text
 
 
 def test_format_service_health_answer_includes_grafana():
