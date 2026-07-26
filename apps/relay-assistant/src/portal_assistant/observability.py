@@ -12,6 +12,8 @@ from portal_assistant.registry import ObservabilityRegistry, load_registry_confi
 
 ProviderName = Literal["mock", "grafana_deeplink", "prometheus"]
 
+DEFAULT_ALERTS_QUERY = 'count(ALERTS{alertstate="firing",service="{service}"})'
+
 
 def _slug(service_name: str) -> str:
     return re.sub(r"[^a-z0-9-]+", "-", service_name.lower()).strip("-") or "demo-service"
@@ -36,6 +38,18 @@ def resolve_observability_provider(cfg: Settings | None = None) -> ProviderName:
     return "mock"
 
 
+def observability_metrics_configured(cfg: Settings | None = None) -> bool:
+    return bool(((cfg or settings).prometheus_base_url or "").strip())
+
+
+@dataclass(frozen=True)
+class LiveMetrics:
+    alert_count: int
+    burn_rate: str | None
+    live: bool
+    note: str | None = None
+
+
 @dataclass(frozen=True)
 class ServiceHealthResult:
     service: str
@@ -45,6 +59,7 @@ class ServiceHealthResult:
     alerts: list[dict[str, Any]]
     grafana_url: str | None
     catalog_match: bool
+    metrics_live: bool = False
     note: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
@@ -56,6 +71,7 @@ class ServiceHealthResult:
             "alerts": self.alerts,
             "grafana_url": self.grafana_url,
             "catalog_match": self.catalog_match,
+            "metrics_live": self.metrics_live,
             "note": self.note,
         }
 
@@ -70,6 +86,21 @@ def _catalog_entry(service_slug: str, obs: ObservabilityRegistry | None) -> tupl
         slo = (entry.slo_target or "99.9%").strip()
         return True, uid, slo
     return False, "", ""
+
+
+def _query_templates(
+    conf: Settings,
+    obs: ObservabilityRegistry | None,
+) -> tuple[str, str]:
+    alerts_tpl = (
+        (obs.prometheus_alerts_query_template if obs else "")
+        or (conf.prometheus_alerts_query_template or "").strip()
+        or DEFAULT_ALERTS_QUERY
+    )
+    burn_tpl = (obs.prometheus_burn_rate_query_template if obs else "") or (
+        conf.prometheus_burn_rate_query_template or ""
+    ).strip()
+    return alerts_tpl, burn_tpl
 
 
 def build_grafana_url(
@@ -152,6 +183,64 @@ async def _prometheus_scalar(
         return None
 
 
+async def fetch_live_metrics(
+    service_slug: str,
+    *,
+    cfg: Settings | None = None,
+    obs: ObservabilityRegistry | None = None,
+) -> LiveMetrics:
+    conf = cfg or settings
+    prom_base = (conf.prometheus_base_url or "").strip()
+    if not prom_base:
+        return LiveMetrics(alert_count=0, burn_rate=None, live=False)
+
+    alerts_tpl, burn_tpl = _query_templates(conf, obs)
+    token = conf.prometheus_api_token or ""
+    alert_count = 0
+    burn_rate: str | None = None
+    try:
+        scalar = await _prometheus_scalar(
+            base_url=prom_base,
+            token=token,
+            query=_expand_query(alerts_tpl, service_slug),
+        )
+        if scalar is not None:
+            alert_count = int(scalar)
+        if burn_tpl:
+            burn_val = await _prometheus_scalar(
+                base_url=prom_base,
+                token=token,
+                query=_expand_query(burn_tpl, service_slug),
+            )
+            if burn_val is not None:
+                burn_rate = f"{burn_val:.2f}"
+    except httpx.HTTPError as exc:
+        return LiveMetrics(
+            alert_count=0,
+            burn_rate=None,
+            live=False,
+            note=f"Prometheus query failed: {exc}",
+        )
+
+    return LiveMetrics(alert_count=alert_count, burn_rate=burn_rate, live=True)
+
+
+def _status_from_metrics(base_status: str, metrics: LiveMetrics) -> str:
+    if not metrics.live:
+        return base_status
+    if metrics.alert_count > 0:
+        return "degraded"
+    if base_status in {"mock", "unknown", "unlisted", "catalog"}:
+        return "ok"
+    return base_status
+
+
+def _alerts_from_metrics(metrics: LiveMetrics) -> list[dict[str, Any]]:
+    if not metrics.live or metrics.alert_count <= 0:
+        return []
+    return [{"severity": "firing", "count": metrics.alert_count}]
+
+
 async def fetch_service_health(
     service_name: str,
     *,
@@ -176,7 +265,7 @@ async def fetch_service_health(
             alerts=[],
             grafana_url=None,
             catalog_match=matched,
-            note="Set GRAFANA_BASE_URL or OBSERVABILITY_PROVIDER for live insight.",
+            note="Set GRAFANA_BASE_URL or PROMETHEUS_BASE_URL for live insight.",
         )
 
     grafana_url = build_grafana_url(
@@ -185,6 +274,7 @@ async def fetch_service_health(
         cfg=conf,
         obs=obs,
     )
+    metrics = await fetch_live_metrics(slug, cfg=conf, obs=obs)
 
     if provider == "grafana_deeplink":
         if not grafana_url:
@@ -192,94 +282,87 @@ async def fetch_service_health(
                 service=slug,
                 mode="grafana_deeplink",
                 status="unknown",
-                slo={"target": slo_target, "burn_rate": None, "window": "30d"},
-                alerts=[],
+                slo={"target": slo_target, "burn_rate": metrics.burn_rate, "window": "30d"},
+                alerts=_alerts_from_metrics(metrics),
                 grafana_url=None,
                 catalog_match=matched,
-                note=(
+                metrics_live=metrics.live,
+                note=metrics.note
+                or (
                     "Configure GRAFANA_BASE_URL and a dashboard uid "
-                    "(registry observability.catalog or GRAFANA_DEFAULT_DASHBOARD_UID)."
+                    "(observability.catalog or GRAFANA_DEFAULT_DASHBOARD_UID)."
                 ),
             )
-        status = "catalog" if matched else "unlisted"
-        note = None if matched else "Service not in observability catalog; using default dashboard."
+        base_status = "catalog" if matched else "unlisted"
+        note = metrics.note
+        if not note and not matched:
+            note = "Service not in observability catalog; using default dashboard."
+        if not metrics.live and not note:
+            note = "Set PROMETHEUS_BASE_URL for live burn rate and alert counts."
         return ServiceHealthResult(
             service=slug,
             mode="grafana_deeplink",
-            status=status,
-            slo={"target": slo_target, "burn_rate": None, "window": "30d"},
-            alerts=[],
+            status=_status_from_metrics(base_status, metrics),
+            slo={"target": slo_target, "burn_rate": metrics.burn_rate, "window": "30d"},
+            alerts=_alerts_from_metrics(metrics),
             grafana_url=grafana_url,
             catalog_match=matched,
+            metrics_live=metrics.live,
             note=note,
         )
 
-    # prometheus — optional live alert count + burn rate; always include Grafana when configured
-    burn_rate: str | None = None
-    alert_count = 0
-    prom_base = (conf.prometheus_base_url or "").strip()
-    prom_note: str | None = None
-    if prom_base:
-        alerts_tpl = (
-            conf.prometheus_alerts_query_template or ""
-        ).strip() or 'count(ALERTS{alertstate="firing",service="{service}"})'
-        burn_tpl = (conf.prometheus_burn_rate_query_template or "").strip()
-        token = conf.prometheus_api_token or ""
-        try:
-            scalar = await _prometheus_scalar(
-                base_url=prom_base,
-                token=token,
-                query=_expand_query(alerts_tpl, slug),
-            )
-            if scalar is not None:
-                alert_count = int(scalar)
-            if burn_tpl:
-                burn_val = await _prometheus_scalar(
-                    base_url=prom_base,
-                    token=token,
-                    query=_expand_query(burn_tpl, slug),
-                )
-                if burn_val is not None:
-                    burn_rate = f"{burn_val:.2f}"
-        except httpx.HTTPError as exc:
-            prom_note = f"Prometheus query failed: {exc}"
-    else:
+    prom_note = metrics.note
+    if not prom_note and not metrics.live:
         prom_note = "Set PROMETHEUS_BASE_URL for live metrics."
-
-    status = "degraded" if alert_count > 0 else "ok"
-    alerts: list[dict[str, Any]] = []
-    if alert_count > 0:
-        alerts.append({"severity": "firing", "count": alert_count})
 
     return ServiceHealthResult(
         service=slug,
         mode="prometheus",
-        status=status,
+        status=_status_from_metrics("ok", metrics),
         slo={
             "target": slo_target,
-            "burn_rate": burn_rate,
+            "burn_rate": metrics.burn_rate,
             "window": "30d",
         },
-        alerts=alerts,
+        alerts=_alerts_from_metrics(metrics),
         grafana_url=grafana_url,
         catalog_match=matched,
+        metrics_live=metrics.live,
         note=prom_note,
     )
 
 
 def format_service_health_answer(health: ServiceHealthResult | dict[str, Any]) -> str:
     data = health.as_dict() if isinstance(health, ServiceHealthResult) else health
-    lines = [f"**{data['service']}** ({data['mode']})"]
+    mode = data.get("mode", "")
+    metrics_live = bool(data.get("metrics_live"))
+    title = f"**{data['service']}**"
+    if metrics_live:
+        title += " — SLO summary (live)"
+    else:
+        title += f" ({mode})"
+    lines = [title]
     slo = data.get("slo") or {}
+    window = slo.get("window") or "30d"
     if slo.get("target"):
-        lines.append(f"- SLO target: {slo['target']}")
+        lines.append(f"- SLO target: {slo['target']} ({window})")
     burn = slo.get("burn_rate")
-    if burn and burn != "n/a":
+    if metrics_live:
+        lines.append(f"- Burn rate: {burn if burn else 'unavailable'}")
+        alerts = data.get("alerts") or []
+        count = 0
+        if alerts:
+            count = int(alerts[0].get("count") or 0)
+        lines.append(f"- Firing alerts: {count}")
+        status = data.get("status")
+        if status and status not in {"mock"}:
+            lines.append(f"- Status: {status}")
+    elif burn and burn != "n/a":
         lines.append(f"- Burn rate: {burn}")
-    elif data.get("mode") == "mock":
+    elif mode == "mock":
         lines.append(f"- Burn rate: {burn or 'n/a'}")
-    alerts = data.get("alerts") or []
-    if alerts:
+    else:
+        alerts = data.get("alerts") or []
         for alert in alerts:
             count = alert.get("count")
             if count is not None:

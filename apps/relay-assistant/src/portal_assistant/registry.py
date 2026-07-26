@@ -97,6 +97,8 @@ class ObservabilityRegistry:
     grafana_path_template: str = "/d/{dashboard_uid}?var-service={service}"
     grafana_embed_path_template: str = "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
     default_embed_service: str = "demo-api"
+    prometheus_alerts_query_template: str = ""
+    prometheus_burn_rate_query_template: str = ""
     catalog: dict[str, ObservabilityServiceEntry] = field(default_factory=dict)
 
 
@@ -148,6 +150,12 @@ def _parse_observability(raw: dict[str, Any] | None) -> ObservabilityRegistry | 
         grafana_path_template=path_template,
         grafana_embed_path_template=embed_template,
         default_embed_service=default_embed or "demo-api",
+        prometheus_alerts_query_template=str(
+            raw.get("prometheus_alerts_query_template") or ""
+        ).strip(),
+        prometheus_burn_rate_query_template=str(
+            raw.get("prometheus_burn_rate_query_template") or ""
+        ).strip(),
         catalog=catalog,
     )
 

@@ -54,7 +54,7 @@ What ships in this repo today:
 | Corpus pipeline | Done (1B.2) | Filesystem + optional `type: git`; `make ingest-full`; `POST /internal/reindex` |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
 | Auth | Partial (1D.1–1D.3) | Local compose open; K8s OIDC; optional header context + confirm group checks |
-| Real observability | Partial (2B.1) | Grafana deeplink + optional Prometheus; mock locally — [observability-health.md](observability-health.md) |
+| Real observability | Partial (2B.1–2B.3) | Grafana deeplink + embed; live SLO summary when Prometheus configured — [observability-health.md](observability-health.md) |
 
 Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
 
@@ -238,7 +238,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 | --- | --- | --- |
 | 2B.1 | Real `service_health` | Read-only query or deep link to Grafana for cataloged services — **done** (`observability.py`, [observability-health.md](../docs/observability-health.md)) |
 | 2B.2 | Embedded view | `grafana-embed` view type in registry backed by real URL template — **done** (`views.py`, web + Backstage embed, [observability-health.md](../docs/observability-health.md#grafana-embed-view)) |
-| 2B.3 | SLO summary in chat | Burn rate / alert count from metrics backend (not mock) |
+| 2B.3 | SLO summary in chat | Burn rate / alert count from metrics backend (not mock) — **done** (Prometheus on `grafana_deeplink` + `prometheus`, `metrics_live` in chat) |
 
 ### Workstream 2C — Catalog-as-code
 
@@ -397,7 +397,7 @@ Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder)
 
 1. Phase **2C.2** Ownership resolution — “Who owns X?” answers from catalog, not only docs
 
-Phase **1** workstreams **1A–1D**, **2A**, and **2B** are on `main`. Phase **2C.1** (GitHub catalog discovery) ships with this doc.
+Phase **1** workstreams **1A–1D** and **2A–2B** are on `main`. Phase **2C.1** (GitHub catalog discovery) ships with this doc.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

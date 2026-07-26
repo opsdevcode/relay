@@ -105,6 +105,8 @@ observability:
   grafana_path_template: "/d/{dashboard_uid}?orgId=1&var-service={service}"
   grafana_embed_path_template: "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
   default_embed_service: demo-api
+  # Optional PromQL templates for chat SLO summary (Phase 2B.3); env vars override.
+  # prometheus_burn_rate_query_template: 'slo:burnrate30d{service="{service}"}'
   catalog:
     demo-api:
       dashboard_uid: relay-demo
