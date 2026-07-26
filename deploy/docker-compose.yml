@@ -62,9 +62,16 @@ services:
       - "3001:3001"
       - "7007:7007"
     environment:
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      # Webpack/Rspack dev server: bind IPv4 so published port :3001 works from the host.
+      APP_CONFIG_app_listen_host: 0.0.0.0
+      APP_CONFIG_app_listen_port: "3001"
+      HOST: 0.0.0.0
+      # Backstage rejects an empty integrations.github token; use a placeholder locally.
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-local-compose-dev-token}
     volumes:
       - ..:/workspace:cached
+      # Keep Linux-native deps inside the container (host macOS node_modules breaks rspack).
+      - backstage_node_modules:/workspace/apps/backstage/node_modules
       # TechDocs local builder (app-config: generator.runIn: docker)
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
@@ -75,3 +82,4 @@ services:
 
 volumes:
   postgres_data:
+  backstage_node_modules:

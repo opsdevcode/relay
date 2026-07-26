@@ -57,7 +57,8 @@ Requirements:
 
 - **Docker Desktop** (or engine + Compose v2) with enough disk for `node:22` and Yarn cache.
 - **Docker socket** mounted for the Backstage service so TechDocs can use `generator.runIn: docker` (local only).
-- Optional **`GITHUB_TOKEN`** in `.env` for Scaffolder workflow dispatch (same as host `make backstage-dev`).
+- The Backstage service uses a **named Docker volume** for `apps/backstage/node_modules` so Linux native packages (Rspack) are not taken from a macOS host install.
+- Optional **`GITHUB_TOKEN`** in `.env` for real GitHub API / Scaffolder dispatch. Compose sets a **placeholder** when unset so Backstage can start (catalog + Relay embed still work).
 
 Stop everything:
 
@@ -92,3 +93,23 @@ docker compose -f deploy/docker-compose.yml --profile backstage up --build -d
 ## Overrides
 
 Custom knowledge mounts: copy [`deploy/docker-compose.override.example.yml`](../deploy/docker-compose.override.example.yml) to `deploy/docker-compose.override.yml`. Compose merges overrides automatically when the project includes `deploy/docker-compose.yml`.
+
+## Troubleshooting
+
+**Backstage on :3001 unreachable but :3000 works**
+
+Check `docker compose --profile backstage ps`. If `backstage` is `Exited`, read logs:
+
+```bash
+docker compose --profile backstage logs backstage --tail 80
+```
+
+`Cannot find module './rspack.linux-…'` means the container used **host** `node_modules` (wrong OS). Recreate with the named volume (current compose file):
+
+```bash
+docker compose --profile backstage down
+docker compose --profile backstage up --build -d
+docker compose --profile backstage logs -f backstage   # wait for “webpack compiled”
+```
+
+First Backstage start runs `yarn install` inside the container and can take several minutes before :3001 responds.
