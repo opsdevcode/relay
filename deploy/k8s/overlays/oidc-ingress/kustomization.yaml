@@ -1,0 +1,18 @@
+# OIDC at ingress (Phase 1D.1)
+#
+# Applies base manifests plus nginx ingress **external auth** annotations that
+# delegate to oauth2-proxy in the same namespace. Deploy oauth2-proxy first
+# (see oauth2-proxy.example.yaml), configure your IdP, then:
+#
+#   kubectl apply -k deploy/k8s/overlays/oidc-ingress
+#
+# Local Docker Compose is intentionally **unauthenticated** — see docs/identity-ingress.md.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  - path: ingress-oidc-patch.yaml

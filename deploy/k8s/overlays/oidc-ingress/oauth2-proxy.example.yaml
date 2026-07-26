@@ -1,0 +1,69 @@
+# Example oauth2-proxy Deployment for the oidc-ingress overlay.
+# NOT applied by kustomize by default — copy secrets/values for your IdP, then:
+#   kubectl apply -f oauth2-proxy.example.yaml
+#
+# Docs: docs/identity-ingress.md
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oauth2-proxy
+  namespace: relay
+type: Opaque
+stringData:
+  OAUTH2_PROXY_CLIENT_ID: replace-me
+  OAUTH2_PROXY_CLIENT_SECRET: replace-me
+  OAUTH2_PROXY_COOKIE_SECRET: replace-with-32-byte-random
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: relay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          args:
+            - --http-address=0.0.0.0:4180
+            - --upstream=file:///dev/null
+            - --email-domain=*
+            - --cookie-secure=true
+            - --provider=oidc
+            - --oidc-issuer-url=https://your-idp.example.com/
+            - --redirect-url=https://portal.example.com/oauth2/callback
+            - --pass-authorization-header=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+          envFrom:
+            - secretRef:
+                name: oauth2-proxy
+          ports:
+            - containerPort: 4180
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy
+  namespace: relay
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+    - name: http
+      port: 4180
+      targetPort: http

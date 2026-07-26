@@ -205,7 +205,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 1D.1 | OIDC at ingress | Unauthenticated access disabled outside local compose |
+| 1D.1 | OIDC at ingress | Unauthenticated access disabled outside local compose — **done** (`overlays/oidc-ingress`, [identity-ingress.md](../docs/identity-ingress.md)) |
 | 1D.2 | User context in API | Subject + groups passed to retrieval (prep for ABAC) |
 | 1D.3 | Confirm action authorization | Only entitled users can confirm mutating drafts |
 
@@ -387,11 +387,11 @@ Current registered services (working model):
 
 ## Quick reference — what to build next
 
-Recommended order after Phase **1B.3**:
+Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **1D.1** OIDC at ingress — unauthenticated access disabled outside local compose
+1. Phase **1D.2** User context in API — subject + groups passed to retrieval (prep for ABAC)
 
-Phase **1A.***, **1B.1–1B.3**, and **1C.1** are on `main`.
+Phase **1A.***, **1B.1–1B.4**, **1C.1–1C.4**, and **1D.1** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

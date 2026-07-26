@@ -58,7 +58,7 @@ Point Argo CD / Flux at `deploy/k8s/overlays/<cloud>` in this repo. Image tags a
 ## What you add per environment
 
 - Ingress hostname + TLS cert (cert-manager)
-- OIDC at ingress (corporate IdP, Cognito, Google IAP, etc.)
+- OIDC at ingress (corporate IdP, Cognito, Google IAP, etc.) — see [identity-ingress.md](identity-ingress.md) and `deploy/k8s/overlays/oidc-ingress/`
 - External Secrets Operator → cloud secret store
 - NetworkPolicy (optional)
 - HPA (optional — add when load testing)
