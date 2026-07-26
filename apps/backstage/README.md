@@ -28,6 +28,24 @@ or **Catalog** for **Relay** / **CloudOpt** (owned by **platform-team**).
 
 Port **3001** avoids clashing with Relay web (`make up` → `:3000`).
 
+## All-container run (Compose profile)
+
+From repo root (no local Node/Yarn required for Backstage):
+
+```bash
+docker compose --profile backstage up --build -d
+# or: make up-backstage
+```
+
+| Host port | Role |
+| --- | --- |
+| **3001** | Backstage UI — open this in the browser |
+| **7007** | Backstage backend API |
+| **3000** | Relay chat (iframe + direct) |
+| **8080** | Relay API |
+
+Details: [docs/local-compose.md](../../docs/local-compose.md#local-ports-docker-compose). First start may take several minutes while `yarn install` runs in the container.
+
 ## Embedded chat (1C.2)
 
 `app-config.yaml`:
