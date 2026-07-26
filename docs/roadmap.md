@@ -186,7 +186,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | 1B.1 | Hybrid retrieval | Embeddings at ingest + FTS rank fusion in Postgres/pgvector — **done** (local embedder; swap in prod) |
 | 1B.2 | Corpus pipeline | Documented ingest from Git (standards repo, doc-as-code output); re-index job or webhook — **done** (`docs/corpus-pipeline.md`, git sources, `POST /internal/reindex`, `make ingest-full`) |
 | 1B.3 | Metadata | Frontmatter (title, owner, updated); better chunk titles — **done** |
-| 1B.4 | Pluggable LLM client | Same interface for Anthropic, Azure OpenAI, or local model — org chooses in deploy config, not in this repo’s defaults |
+| 1B.4 | Pluggable LLM client | Same interface for Anthropic, Azure OpenAI, or local model — **done** (`llm_providers.py`, `LLM_PROVIDER` env) |
 
 **Model note:** This repo does **not** require Microsoft Foundry or any single cloud AI product. Production deploy repos supply endpoints and secrets (Key Vault / ESO). Local dev stays extractive-first.
 
@@ -389,8 +389,7 @@ Current registered services (working model):
 
 Recommended order after Phase **1B.3**:
 
-1. Phase **1B.4** Pluggable LLM client — same interface for Anthropic, Azure OpenAI, or local model
-2. Phase **1B.4** Pluggable LLM client — org-chosen synthesis backend in deploy config
+1. Phase **1C.3** TechDocs — at least one entity with published docs from repo markdown
 
 Phase **1A.***, **1B.1–1B.3**, and **1C.1** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).

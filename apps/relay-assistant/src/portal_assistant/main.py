@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from portal_assistant import __version__
 from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
+from portal_assistant.llm_providers import resolve_synthesis_provider
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
 from portal_assistant.sessions import SessionStore, create_session_store
 from portal_assistant.store import DocumentStore
@@ -95,11 +96,13 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict:
     count = store.count()
+    llm_provider = resolve_synthesis_provider(settings)
     return {
         "status": "ok",
         "version": __version__,
         "documents": count,
-        "answer_mode": "llm" if settings.anthropic_api_key else "extractive",
+        "answer_mode": "llm" if llm_provider else "extractive",
+        "llm_provider": llm_provider,
         "retrieval_mode": store.retrieval_mode(),
         "api_keys_required": False,
     }
