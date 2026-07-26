@@ -8,3 +8,5 @@ data:
   WEB_ORIGIN: https://portal.example.com
   GITHUB_ORG: opsdevcode
   GITHUB_REPO: opsdevcode/relay
+  # Set true when oauth2-proxy forwards X-Auth-Request-* (see docs/identity-ingress.md)
+  USER_CONTEXT_HEADERS_ENABLED: "false"

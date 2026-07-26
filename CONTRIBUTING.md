@@ -14,6 +14,10 @@ Thanks for your interest in this working model. The goal is a **local-first**, *
   - Do not merge `feat:` / `fix:` work and plan tests as follow-up. See
     [`docs/tdd.md`](docs/tdd.md) and [`docs/local-testing.md`](docs/local-testing.md).
 - **Pin Actions to SHAs.** Third-party actions in workflows must use full commit SHAs (see existing workflows).
+- **Keep the roadmap in sync.** When a PR completes a roadmap item (e.g. **1D.2**), update
+  [`docs/roadmap.md`](docs/roadmap.md) in the **same PR**: mark the workstream **done**, refresh
+  **Quick reference — what to build next**, and adjust **Current state** if the baseline table is
+  stale. See **How this doc stays current** in the roadmap.
 
 ## Development
 

@@ -7,6 +7,7 @@ from portal_assistant.registry import RegistryConfig, load_registry_config, reso
 from portal_assistant.sessions import apply_follow_up_refinement
 from portal_assistant.store import DocumentStore
 from portal_assistant.tools import dispatch_tool
+from portal_assistant.user_context import UserContext
 
 # Draft fields safe to round-trip through /chat → confirm (no live URLs until confirm).
 WRITE_DRAFT_CLIENT_KEYS: frozenset[str] = frozenset(
@@ -58,6 +59,7 @@ async def run_chat_graph(
     *,
     prior_turns: list[dict[str, Any]] | None = None,
     config: RegistryConfig | None = None,
+    user: UserContext | None = None,
 ) -> tuple[dict[str, Any], GraphTrace]:
     """Deterministic chat pipeline: refine → route → execute → write guard."""
     cfg = config or load_registry_config()
@@ -67,7 +69,7 @@ async def run_chat_graph(
     tool_id = resolve_tool(effective_message, cfg)
     tool_def = cfg.tool_definition(tool_id)
 
-    raw = await dispatch_tool(tool_id, effective_message, store)
+    raw = await dispatch_tool(tool_id, effective_message, store, user=user)
 
     if tool_def.kind == "write":
         guarded = enforce_write_tool_result(tool_id, raw)

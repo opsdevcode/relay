@@ -9,6 +9,20 @@ from portal_assistant.chunking import Chunk
 from portal_assistant.config import settings
 from portal_assistant.embeddings import embed_text, to_vector_literal
 from portal_assistant.retrieval import reciprocal_rank_fusion
+from portal_assistant.user_context import UserContext
+
+
+def _access_filter_clause(user: UserContext | None) -> tuple[str, list]:
+    if user is None:
+        return "", []
+    principals = user.retrieval_principals()
+    if not principals:
+        return " AND visibility = 'public'", []
+    return (
+        " AND (visibility = 'public' OR doc_owner IS NULL OR doc_owner = ANY(%s))",
+        [principals],
+    )
+
 
 SCHEMA = """
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -79,36 +93,104 @@ class DocumentStore:
             conn.commit()
         return len(chunks)
 
-    def _fts_search(self, query: str, limit: int) -> list[dict[str, Any]]:
+    def _fts_search(
+        self, query: str, limit: int, user: UserContext | None = None
+    ) -> list[dict[str, Any]]:
+        principals = user.retrieval_principals() if user else []
         with self.connect() as conn:
-            rows = conn.execute(
-                """
-                SELECT source, title, content,
-                       ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
-                FROM documents
-                WHERE content_tsv @@ websearch_to_tsquery('english', %s)
-                ORDER BY rank DESC
-                LIMIT %s
-                """,
-                (query, query, limit),
-            ).fetchall()
+            if user is None:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+                    FROM documents
+                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+                    ORDER BY rank DESC
+                    LIMIT %s
+                    """,
+                    (query, query, limit),
+                ).fetchall()
+            elif not principals:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+                    FROM documents
+                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+                      AND visibility = 'public'
+                    ORDER BY rank DESC
+                    LIMIT %s
+                    """,
+                    (query, query, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+                    FROM documents
+                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+                      AND (
+                        visibility = 'public'
+                        OR doc_owner IS NULL
+                        OR doc_owner = ANY(%s)
+                      )
+                    ORDER BY rank DESC
+                    LIMIT %s
+                    """,
+                    (query, query, principals, limit),
+                ).fetchall()
         return cast(list[dict[str, Any]], list(rows))
 
-    def _vector_search(self, query: str, limit: int) -> list[dict[str, Any]]:
+    def _vector_search(
+        self, query: str, limit: int, user: UserContext | None = None
+    ) -> list[dict[str, Any]]:
         dims = settings.embedding_dimensions
         vector = to_vector_literal(embed_text(query, dimensions=dims))
+        principals = user.retrieval_principals() if user else []
         with self.connect() as conn:
-            rows = conn.execute(
-                """
-                SELECT source, title, content,
-                       (1 - (embedding <=> %s::vector)) AS vec_score
-                FROM documents
-                WHERE embedding IS NOT NULL
-                ORDER BY embedding <=> %s::vector
-                LIMIT %s
-                """,
-                (vector, vector, limit),
-            ).fetchall()
+            if user is None:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           (1 - (embedding <=> %s::vector)) AS vec_score
+                    FROM documents
+                    WHERE embedding IS NOT NULL
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT %s
+                    """,
+                    (vector, vector, limit),
+                ).fetchall()
+            elif not principals:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           (1 - (embedding <=> %s::vector)) AS vec_score
+                    FROM documents
+                    WHERE embedding IS NOT NULL
+                      AND visibility = 'public'
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT %s
+                    """,
+                    (vector, vector, limit),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT source, title, content,
+                           (1 - (embedding <=> %s::vector)) AS vec_score
+                    FROM documents
+                    WHERE embedding IS NOT NULL
+                      AND (
+                        visibility = 'public'
+                        OR doc_owner IS NULL
+                        OR doc_owner = ANY(%s)
+                      )
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT %s
+                    """,
+                    (vector, principals, vector, limit),
+                ).fetchall()
         return cast(list[dict[str, Any]], list(rows))
 
     def _embeddings_available(self) -> bool:
@@ -120,13 +202,15 @@ class DocumentStore:
             return False
         return bool(cast(dict[str, Any], row)["ok"])
 
-    def search(self, query: str, limit: int = 6) -> list[dict[str, Any]]:
+    def search(
+        self, query: str, limit: int = 6, user: UserContext | None = None
+    ) -> list[dict[str, Any]]:
         if not settings.hybrid_search_enabled or not self._embeddings_available():
-            return self._fts_search(query, limit)[:limit]
+            return self._fts_search(query, limit, user=user)[:limit]
 
         fetch = max(limit * 4, 12)
-        fts_hits = self._fts_search(query, fetch)
-        vec_hits = self._vector_search(query, fetch)
+        fts_hits = self._fts_search(query, fetch, user=user)
+        vec_hits = self._vector_search(query, fetch, user=user)
         if not vec_hits:
             return fts_hits[:limit]
         if not fts_hits:
