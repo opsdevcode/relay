@@ -11,3 +11,4 @@ data:
   # Set true when oauth2-proxy forwards X-Auth-Request-* (see docs/identity-ingress.md)
   USER_CONTEXT_HEADERS_ENABLED: "false"
   CONFIRM_ACTION_AUTHORIZATION_ENABLED: "false"
+  TICKET_INTAKE_PROVIDER: github_issue

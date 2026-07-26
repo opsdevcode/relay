@@ -41,4 +41,9 @@ confirm="$(curl -sf -X POST "$API/actions/confirm" -H 'Content-Type: application
 echo "$confirm" | grep -q 'workflow_url' || { echo "scaffold confirm failed"; echo "$confirm"; exit 1; }
 echo "$confirm" | grep -q 'payments-api' || { echo "expected payments-api in confirm response"; echo "$confirm"; exit 1; }
 
+echo "==> sandbox confirm (default github issue template)"
+sandbox="$(curl -sf -X POST "$API/actions/confirm" -H 'Content-Type: application/json' \
+  -d '{"draft":{"action":"request_sandbox","purpose":"Smoke POC","budget_usd_monthly":"500","requires_confirmation":true}}')"
+echo "$sandbox" | grep -q 'intake_url' || { echo "sandbox confirm failed"; echo "$sandbox"; exit 1; }
+
 echo "OK — local dev works without API keys"

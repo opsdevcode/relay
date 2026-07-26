@@ -61,10 +61,17 @@ function formatActionResult(data) {
       `</div>`
     );
   }
-  if (data.issue_url) {
+  if (data.issue_url || data.intake_url) {
+    const href = data.intake_url || data.issue_url;
+    const label =
+      data.provider === "jira" || data.provider === "servicenow"
+        ? "Open ticket"
+        : "Open issue template";
     return (
       `<div>${renderMarkdown(data.message || "")}</div>` +
-      `<div class="draft"><a href="${escapeHtml(data.issue_url)}" target="_blank" rel="noopener">Open issue template</a></div>`
+      `<div class="draft"><a href="${escapeHtml(href)}" target="_blank" rel="noopener">${label}</a>` +
+      (data.ticket_id ? `<p class="hint">Ticket: ${escapeHtml(data.ticket_id)}</p>` : "") +
+      `</div>`
     );
   }
   return escapeHtml(data.message || JSON.stringify(data));

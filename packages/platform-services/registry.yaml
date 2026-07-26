@@ -37,7 +37,7 @@ services:
 
   - id: developer-sandbox
     name: Developer Sandbox
-    description: Self-service sandbox request (GitHub Issue stub for ticket system in prod)
+    description: Self-service sandbox request via pluggable ticket intake (Phase 2A.2)
     phase: v2
     knowledge:
       paths:
