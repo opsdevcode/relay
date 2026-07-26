@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from portal_assistant.config import settings
+from portal_assistant.llm_providers import build_synthesis_client
 
 SYSTEM_PROMPT = """You are Relay, the assistant for an internal developer portal.
 Answer using ONLY the provided context. If the context is insufficient, say you do not know.
@@ -57,7 +58,8 @@ def format_extractive_answer(question: str, contexts: list[dict]) -> str:
 
 
 async def synthesize(question: str, contexts: list[dict]) -> str:
-    if not settings.anthropic_api_key:
+    client = build_synthesis_client(settings)
+    if client is None:
         return format_extractive_answer(question, contexts)
 
     if not contexts:
@@ -71,25 +73,4 @@ async def synthesize(question: str, contexts: list[dict]) -> str:
     )
     user_message = f"Question: {question}\n\nContext:\n{context_block}"
 
-    import httpx
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": settings.anthropic_api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": settings.anthropic_model,
-                "max_tokens": 1024,
-                "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": user_message}],
-            },
-        )
-        response.raise_for_status()
-        payload = response.json()
-        content_blocks = payload.get("content", [])
-        parts = [block.get("text", "") for block in content_blocks if block.get("type") == "text"]
-        return "\n".join(parts).strip()
+    return await client.complete(system=SYSTEM_PROMPT, user=user_message)

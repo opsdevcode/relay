@@ -18,7 +18,7 @@ make smoke       # HTTP end-to-end check (stack must be running)
 make verify      # unit tests in container + smoke
 ```
 
-Optional: set `ANTHROPIC_API_KEY` in `.env` for synthesized LLM answers instead of extractive excerpts.
+Optional: set `LLM_PROVIDER` and provider credentials in `.env` for synthesized LLM answers instead of extractive excerpts (see `.env.example`).
 
 **Local testing** is a first-class deliverable: [docs/local-testing.md](docs/local-testing.md).
 

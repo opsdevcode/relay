@@ -27,8 +27,8 @@ That's it — **no API keys, no manual ingest**. On first start the Portal Assis
 
 | Mode | When | Behavior |
 | --- | --- | --- |
-| **Extractive** (default) | No `ANTHROPIC_API_KEY` | Best-matching excerpts from indexed docs + citations |
-| **LLM** (optional) | `ANTHROPIC_API_KEY` set in `.env` | Synthesized, cited answers via Anthropic |
+| **Extractive** (default) | No synthesis credentials / `LLM_PROVIDER=none` | Best-matching excerpts from indexed docs + citations |
+| **LLM** (optional) | `LLM_PROVIDER` + matching env (see `.env.example`) | Synthesized, cited answers via Anthropic, Azure OpenAI, or OpenAI-compatible endpoint |
 
 ## Try these prompts
 
@@ -59,7 +59,7 @@ make up
 
 Copy overrides into `.env` (created automatically from `.env.example` on `make up`):
 
-- `ANTHROPIC_API_KEY` — enable LLM synthesis mode
+- `LLM_PROVIDER` and provider-specific vars — enable LLM synthesis (see `.env.example`)
 - `INGEST_WEBHOOK_SECRET` — enable `POST /internal/reindex`
 
 To index a custom markdown tree instead of the bundled corpus, add `deploy/docker-compose.override.yml` (gitignored) with a different volume mount. For Git-backed standards repos and webhook reindex, see [corpus-pipeline.md](corpus-pipeline.md).
