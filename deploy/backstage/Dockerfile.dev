@@ -1,0 +1,15 @@
+# Dev image for `docker compose --profile backstage` (repo bind-mount at /workspace).
+FROM node:22-bookworm
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    g++ \
+    build-essential \
+    libsqlite3-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace/apps/backstage
+
+# Compose overrides command; entrypoint keeps working_dir semantics.
+ENTRYPOINT ["/workspace/deploy/scripts/backstage-compose-start.sh"]

@@ -23,6 +23,8 @@ make smoke   # optional
 
 That's it — **no API keys, no manual ingest**. On first start the Portal Assistant indexes the bundled `knowledge/corpus/` automatically.
 
+**Docker Compose without Make:** [local-compose.md](local-compose.md) (`docker compose up --build -d` from repo root).
+
 ## Modes
 
 | Mode | When | Behavior |
