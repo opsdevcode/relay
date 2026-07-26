@@ -237,7 +237,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 | ID | Work | Exit criteria |
 | --- | --- | --- |
 | 2B.1 | Real `service_health` | Read-only query or deep link to Grafana for cataloged services — **done** (`observability.py`, [observability-health.md](../docs/observability-health.md)) |
-| 2B.2 | Embedded view | `grafana-embed` view type in registry backed by real URL template |
+| 2B.2 | Embedded view | `grafana-embed` view type in registry backed by real URL template — **done** (`views.py`, web + Backstage embed, [observability-health.md](../docs/observability-health.md#grafana-embed-view)) |
 | 2B.3 | SLO summary in chat | Burn rate / alert count from metrics backend (not mock) |
 
 ### Workstream 2C — Catalog-as-code
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2B.2** Embedded view — `grafana-embed` view type in registry backed by real URL template
+1. Phase **2B.3** SLO summary in chat — burn rate / alert count from metrics backend (not mock)
 
-Phase **1** workstreams **1A–1D** and **2A** are on `main`. Phase **2B.1** (service health) ships with this doc.
+Phase **1** workstreams **1A–1D** and **2A** are on `main`. Phase **2B.1–2B.2** (service health + Grafana embed) ship with this doc.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

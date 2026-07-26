@@ -9,6 +9,10 @@ const form = document.getElementById("composer");
 const input = document.getElementById("input");
 const statusEl = document.getElementById("status");
 const promptsEl = document.getElementById("prompts");
+const observabilityPanel = document.getElementById("observability-panel");
+const observabilityService = document.getElementById("observability-service");
+const observabilityHint = document.getElementById("observability-hint");
+const grafanaEmbed = document.getElementById("grafana-embed");
 
 let pendingDraft = null;
 const THREAD_KEY = "relay_thread_id";
@@ -198,6 +202,55 @@ function renderPromptGroups(services) {
   }
 }
 
+async function initObservabilityEmbed(services) {
+  if (!observabilityPanel || !observabilityService || !grafanaEmbed) return;
+  const obs = (services || []).find((svc) => svc.id === "observability-insight");
+  const embed = obs?.view_urls?.grafana_embed;
+  if (!obs || !embed) return;
+
+  observabilityPanel.classList.remove("hidden");
+  const catalog = embed.catalog_services || [];
+  const options =
+    catalog.length > 0
+      ? catalog
+      : [{ slug: embed.service, label: embed.service }];
+
+  observabilityService.replaceChildren();
+  for (const entry of options) {
+    const opt = document.createElement("option");
+    opt.value = entry.slug || entry;
+    opt.textContent = entry.label || entry.slug || entry;
+    observabilityService.appendChild(opt);
+  }
+
+  async function refreshEmbed() {
+    const slug = observabilityService.value;
+    try {
+      const res = await fetch(
+        `${API}/platform-services/observability-insight/grafana-embed?service=${encodeURIComponent(slug)}`,
+      );
+      const data = await res.json();
+      if (data.url) {
+        grafanaEmbed.src = data.url;
+        grafanaEmbed.classList.remove("hidden");
+        observabilityHint.textContent = "";
+      } else {
+        grafanaEmbed.classList.add("hidden");
+        grafanaEmbed.removeAttribute("src");
+        observabilityHint.textContent = data.hint || "Grafana embed not configured.";
+      }
+    } catch {
+      observabilityHint.textContent = "Could not load Grafana embed URL.";
+    }
+  }
+
+  observabilityService.addEventListener("change", refreshEmbed);
+  if (!embed.configured) {
+    observabilityHint.textContent = embed.hint || "";
+  }
+  await refreshEmbed();
+}
+
 async function initPrompts() {
   if (!promptsEl) return;
   try {
@@ -205,6 +258,7 @@ async function initPrompts() {
     if (!res.ok) throw new Error("platform-services");
     const services = await res.json();
     renderPromptGroups(services);
+    await initObservabilityEmbed(services);
   } catch {
     renderPromptGroups([]);
   }

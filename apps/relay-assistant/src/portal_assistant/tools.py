@@ -5,7 +5,6 @@ import re
 from portal_assistant.audit_log import EVENT_RETRIEVAL, AuditActor, AuditLogStore
 from portal_assistant.llm import synthesize
 from portal_assistant.observability import fetch_service_health, format_service_health_answer
-from portal_assistant.registry import load_registry_config
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
 from portal_assistant.scaffold import build_workflow_dispatch
 from portal_assistant.store import DocumentStore
@@ -13,7 +12,9 @@ from portal_assistant.user_context import UserContext
 
 
 def load_registry() -> list[dict]:
-    return load_registry_config().services
+    from portal_assistant.views import load_platform_services
+
+    return load_platform_services()
 
 
 def list_platform_services() -> str:

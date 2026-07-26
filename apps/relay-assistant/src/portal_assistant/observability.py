@@ -78,20 +78,45 @@ def build_grafana_url(
     dashboard_uid: str,
     cfg: Settings | None = None,
     obs: ObservabilityRegistry | None = None,
+    path_template: str | None = None,
 ) -> str | None:
     conf = cfg or settings
     base = (conf.grafana_base_url or "").strip()
     if not base or not dashboard_uid:
         return None
-    path_template = (
-        (obs.grafana_path_template if obs else "")
+    resolved_template = (
+        path_template
+        or (obs.grafana_path_template if obs else "")
         or (conf.grafana_dashboard_path_template or "").strip()
         or "/d/{dashboard_uid}?var-service={service}"
     )
-    path = path_template.format(dashboard_uid=dashboard_uid, service=service_slug)
+    path = resolved_template.format(dashboard_uid=dashboard_uid, service=service_slug)
     if not path.startswith("/"):
         path = f"/{path}"
     return urljoin(base.rstrip("/") + "/", path.lstrip("/"))
+
+
+def build_grafana_embed_url(
+    *,
+    service_slug: str,
+    dashboard_uid: str,
+    cfg: Settings | None = None,
+    obs: ObservabilityRegistry | None = None,
+) -> str | None:
+    embed_template = (
+        (obs.grafana_embed_path_template if obs else "")
+        or (cfg or settings).grafana_embed_path_template
+        or ""
+    ).strip()
+    if not embed_template and obs:
+        embed_template = obs.grafana_path_template
+    return build_grafana_url(
+        service_slug=service_slug,
+        dashboard_uid=dashboard_uid,
+        cfg=cfg,
+        obs=obs,
+        path_template=embed_template or None,
+    )
 
 
 def _expand_query(template: str, service_slug: str) -> str:

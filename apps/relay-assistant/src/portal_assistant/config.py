@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     observability_provider: str = ""
     grafana_base_url: str = ""
     grafana_dashboard_path_template: str = "/d/{dashboard_uid}?var-service={service}"
+    grafana_embed_path_template: str = "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
     grafana_default_dashboard_uid: str = ""
     prometheus_base_url: str = ""
     prometheus_api_token: str = ""
