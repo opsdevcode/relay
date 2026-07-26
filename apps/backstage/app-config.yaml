@@ -116,6 +116,12 @@ catalog:
       rules:
         - allow: [Component, User, Group]
 
+    # Golden-path software template (Phase 1C.4) → scaffold-k8s-service.yml
+    - type: file
+      target: ../../../../templates/k8s-service/template.yaml
+      rules:
+        - allow: [Template]
+
     # Optional create-app examples (disabled by default to avoid colliding guest users).
     # - type: file
     #   target: ../../examples/entities.yaml

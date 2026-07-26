@@ -7,12 +7,14 @@ on:
       - "apps/backstage/**"
       - "catalog/entities/**"
       - "docs/techdocs/**"
+      - "templates/k8s-service/**"
       - ".github/workflows/backstage.yml"
   pull_request:
     paths:
       - "apps/backstage/**"
       - "catalog/entities/**"
       - "docs/techdocs/**"
+      - "templates/k8s-service/**"
       - ".github/workflows/backstage.yml"
 
 permissions:

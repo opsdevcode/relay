@@ -6,7 +6,8 @@ embedded at `/relay` via iframe (1C.2) pointing at `relay.chatEmbedUrl`
 (default `http://localhost:3000`). **TechDocs** for the **Relay** component (1C.3)
 publishes markdown from [`docs/techdocs/relay/`](../../docs/techdocs/relay/).
 
-Scaffolder registration is a later roadmap item (1C.4).
+Scaffolder **K8s Service (Golden Path)** template (1C.4) dispatches the same
+[`scaffold-k8s-service.yml`](../../.github/workflows/scaffold-k8s-service.yml) workflow as Relay chat.
 
 ## Prerequisites
 
@@ -55,6 +56,14 @@ The **Relay** component annotation `backstage.io/techdocs-ref` points at
 The first build uses the Docker generator (`techdocs.generator.runIn: docker` in
 `app-config.yaml`); keep Docker running locally.
 
+## Scaffolder (1C.4)
+
+**Create** (`/create`) lists **K8s Service (Golden Path)** from
+[`templates/k8s-service/template.yaml`](../../templates/k8s-service/template.yaml).
+The template calls `github:actions:dispatch` on `scaffold-k8s-service.yml` when
+`GITHUB_TOKEN` is set for the Backstage GitHub integration; otherwise use the
+post-run link to trigger the workflow manually (see [scaffolding.md](../../docs/scaffolding.md)).
+
 ## Tests
 
 | Layer | Command |
@@ -66,7 +75,6 @@ The first build uses the Docker generator (`techdocs.generator.runIn: docker` in
 New catalog entities or Backstage config changes **must** update contract tests and
 Playwright specs in the same PR ([docs/tdd.md](../../docs/tdd.md)).
 
-## Next (not in 1C.3)
+## Next (not in 1C.4)
 
-1. Register `templates/k8s-service/` as a Scaffolder template (1C.4)
-2. GitHub org discovery / OAuth for non-prod
+1. GitHub org discovery / OAuth for non-prod (1D+)

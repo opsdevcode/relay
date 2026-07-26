@@ -9,6 +9,8 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[3]
 APP_CONFIG = REPO_ROOT / "apps" / "backstage" / "app-config.yaml"
 CATALOG_REL = "../../../../catalog/entities/catalog.yaml"
+TEMPLATE_REL = "../../../../templates/k8s-service/template.yaml"
+TEMPLATE_PATH = REPO_ROOT / "templates" / "k8s-service" / "template.yaml"
 
 
 def test_backstage_app_config_exists():
@@ -22,6 +24,25 @@ def test_backstage_catalog_location_imports_repo_entities():
     assert CATALOG_REL in targets, (
         f"expected catalog location {CATALOG_REL!r} in app-config locations={targets}"
     )
+
+
+def test_backstage_catalog_registers_k8s_template():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    locations = (data.get("catalog") or {}).get("locations") or []
+    targets = [loc.get("target") for loc in locations if isinstance(loc, dict)]
+    assert TEMPLATE_REL in targets
+    template_loc = next(loc for loc in locations if loc.get("target") == TEMPLATE_REL)
+    allowed: set[str] = set()
+    for rule in template_loc.get("rules") or []:
+        allowed.update(rule.get("allow") or [])
+    assert "Template" in allowed
+
+
+def test_backstage_template_path_resolves_from_backend_cwd():
+    backend_cwd = REPO_ROOT / "apps" / "backstage" / "packages" / "backend"
+    resolved = (backend_cwd / TEMPLATE_REL).resolve()
+    assert resolved == TEMPLATE_PATH.resolve()
+    assert resolved.is_file()
 
 
 def test_backstage_catalog_location_allows_component_user_group():
