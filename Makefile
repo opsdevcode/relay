@@ -1,7 +1,8 @@
-.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test backstage-e2e
+.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test backstage-e2e up-backstage down-backstage
 
 PA := apps/relay-assistant
 BS := apps/backstage
+COMPOSE := docker compose -f compose.yaml
 
 bootstrap:
 	@test -f .env || cp .env.example .env
@@ -10,20 +11,26 @@ install:
 	pip install --no-cache-dir -e "./$(PA)[dev]"
 
 up: bootstrap
-	docker compose -f deploy/docker-compose.yml up --build -d
+	$(COMPOSE) up --build -d
 
 down:
-	docker compose -f deploy/docker-compose.yml down
+	$(COMPOSE) down
+
+up-backstage: bootstrap
+	$(COMPOSE) --profile backstage up --build -d
+
+down-backstage:
+	$(COMPOSE) --profile backstage down
 
 logs:
-	docker compose -f deploy/docker-compose.yml logs -f relay-assistant
+	$(COMPOSE) logs -f relay-assistant
 
 ingest:
-	docker compose -f deploy/docker-compose.yml exec relay-assistant \
+	$(COMPOSE) exec relay-assistant \
 		python -m rag_ingestion.cli ingest
 
 ingest-full:
-	docker compose -f deploy/docker-compose.yml exec relay-assistant \
+	$(COMPOSE) exec relay-assistant \
 		python -m rag_ingestion.cli ingest --full
 
 lint:
@@ -49,7 +56,7 @@ test: test-local
 
 # Unit tests inside the running relay-assistant container.
 test-docker:
-	docker compose -f deploy/docker-compose.yml exec relay-assistant python -m pytest -q
+	$(COMPOSE) exec relay-assistant python -m pytest -q
 
 smoke:
 	@./scripts/smoke-local.sh

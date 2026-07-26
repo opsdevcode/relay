@@ -18,6 +18,8 @@ make smoke       # HTTP end-to-end check (stack must be running)
 make verify      # unit tests in container + smoke
 ```
 
+**Alternative (Docker Compose only):** from the repo root, the same portal stack is `docker compose up --build -d` (see [docs/local-compose.md](docs/local-compose.md)). Add Backstage with `docker compose --profile backstage up --build -d` or `make up-backstage`. Make remains the documented default for ingest, CI, and host Backstage dev.
+
 Optional: set `LLM_PROVIDER` and provider credentials in `.env` for synthesized LLM answers instead of extractive excerpts (see `.env.example`).
 
 **Local testing** is a first-class deliverable: [docs/local-testing.md](docs/local-testing.md).
@@ -42,13 +44,18 @@ templates/
   k8s-service/          # Golden-path: containerized service (any managed K8s)
 deploy/
   docker-compose.yml
+  backstage/              # Dockerfile.dev for compose --profile backstage
   k8s/base/             # Portable K8s (no cloud CRDs)
   k8s/overlays/         # aks | eks | gke — ingress/LB annotations only
 catalog/entities/       # Seed catalog.yaml for Backstage + demo
+compose.yaml            # Docker Compose entry (includes deploy/docker-compose.yml)
 docs/
 ```
 
-Backstage local: `make backstage-install && make backstage-dev` → http://localhost:3001 (see [`apps/backstage/README.md`](apps/backstage/README.md)).
+Backstage local:
+
+- **Make (default for UI work):** `make backstage-install && make backstage-dev` → http://localhost:3001 (see [`apps/backstage/README.md`](apps/backstage/README.md)).
+- **Compose profile:** `make up-backstage` or `docker compose --profile backstage up --build -d` — [docs/local-compose.md](docs/local-compose.md).
 
 ## Architecture (working model)
 

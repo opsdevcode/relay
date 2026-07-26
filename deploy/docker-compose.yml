@@ -51,5 +51,27 @@ services:
     depends_on:
       - relay-assistant
 
+  # Optional: `docker compose --profile backstage up` (see docs/local-compose.md).
+  backstage:
+    profiles: ["backstage"]
+    build:
+      context: ..
+      dockerfile: deploy/backstage/Dockerfile.dev
+    working_dir: /workspace/apps/backstage
+    ports:
+      - "3001:3001"
+      - "7007:7007"
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    volumes:
+      - ..:/workspace:cached
+      # TechDocs local builder (app-config: generator.runIn: docker)
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      relay-assistant:
+        condition: service_started
+      web:
+        condition: service_started
+
 volumes:
   postgres_data:

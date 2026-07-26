@@ -11,7 +11,7 @@ make up          # start stack (no keys)
 make verify      # unit tests in container + HTTP smoke
 ```
 
-See also: [local-setup.md](local-setup.md) · [corpus-pipeline.md](corpus-pipeline.md) · [tdd.md](tdd.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
+See also: [local-setup.md](local-setup.md) · [local-compose.md](local-compose.md) · [corpus-pipeline.md](corpus-pipeline.md) · [tdd.md](tdd.md) · [roadmap.md](roadmap.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
 
@@ -221,7 +221,9 @@ We treat local testing as **done for a release** when all of the following hold:
 | Target | Purpose |
 | --- | --- |
 | `make bootstrap` | Create `.env` from example if missing |
-| `make up` / `make down` | Start/stop compose stack |
+| `make up` / `make down` | Start/stop compose stack (portal) |
+| `make up-backstage` / `make down-backstage` | Stack + Backstage compose profile |
+| `docker compose up --build -d` | Same as `make up` — [local-compose.md](local-compose.md) |
 | `make ingest` | Re-index knowledge corpus (upsert) |
 | `make ingest-full` | Delete all docs then re-index (drops stale chunks) |
 | `make install` | Install dev dependencies (`apps/relay-assistant[dev]`) |
