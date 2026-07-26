@@ -38,6 +38,9 @@ ingest-full:
 	$(COMPOSE) exec relay-assistant \
 		python -m rag_ingestion.cli ingest --full
 
+catalog-discover:
+	cd $(PA) && PYTHONPATH=src python3 -m catalog_discovery.cli sync
+
 lint:
 	cd $(PA) && ruff check src tests
 

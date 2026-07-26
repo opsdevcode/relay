@@ -1,0 +1,13 @@
+# GitHub catalog discovery (Phase 2C.1). Copy to discovery.yaml and set org/repos.
+#   cd apps/relay-assistant && PYTHONPATH=src python -m catalog_discovery.cli sync
+
+github:
+  org: opsdevcode
+  # Empty repos = scan up to max_repos in the org. Prefer an allowlist in production.
+  repos:
+    - relay
+  paths:
+    - examples/services/demo-api/catalog-info.yaml
+  max_repos: 50
+
+output_path: catalog/entities/discovered-github.yaml

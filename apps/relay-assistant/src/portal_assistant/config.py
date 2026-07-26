@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     ingest_webhook_secret: str = ""
     github_org: str = "opsdevcode"
     github_repo: str = "opsdevcode/relay"
+    github_api_token: str = ""
     # When true, trust X-Auth-Request-* from oauth2-proxy behind ingress. Off locally.
     user_context_headers_enabled: bool = False
     # When true, POST /actions/confirm requires entitled IdP groups (see registry tools).

@@ -125,6 +125,12 @@ catalog:
       rules:
         - allow: [Location]
 
+    # GitHub catalog discovery output (Phase 2C.1) — populate via make catalog-discover
+    - type: file
+      target: ../../../../catalog/entities/discovered-github-location.yaml
+      rules:
+        - allow: [Location, Component]
+
     # Golden-path software template (Phase 1C.4) → scaffold-k8s-service.yml
     - type: file
       target: ../../../../templates/k8s-service/template.yaml
