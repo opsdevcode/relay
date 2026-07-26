@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from portal_assistant.audit_log import EVENT_RETRIEVAL, AuditActor, AuditLogStore
 from portal_assistant.llm import synthesize
 from portal_assistant.registry import load_registry_config
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
@@ -94,6 +95,8 @@ async def dispatch_tool(
     store: DocumentStore,
     *,
     user: UserContext | None = None,
+    audit: AuditLogStore | None = None,
+    thread_id: str | None = None,
 ) -> dict:
     if tool_id == "list_platform_services":
         return {"answer": list_platform_services(), "citations": [], "draft": None}
@@ -124,6 +127,18 @@ async def dispatch_tool(
     if tool_id == "docs_search":
         hits = store.search(message, user=user)
         citations = [{"source": h["source"], "title": h["title"]} for h in hits]
+        if audit:
+            audit.record(
+                EVENT_RETRIEVAL,
+                payload={
+                    "query_preview": message[:500],
+                    "sources": [c["source"] for c in citations],
+                    "hit_count": len(citations),
+                },
+                thread_id=thread_id,
+                actor=AuditActor.from_user(user),
+                tool_id=tool_id,
+            )
         answer = await synthesize(message, hits)
         return {"answer": answer, "citations": citations, "draft": None}
 

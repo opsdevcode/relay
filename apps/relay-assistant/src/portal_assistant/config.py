@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     ticket_intake_project: str = ""
     ticket_intake_issue_type: str = "Task"
     ticket_intake_url_template: str = ""
+    audit_log_enabled: bool = True
+    audit_query_secret: str = ""
 
 
 settings = Settings()
