@@ -49,4 +49,4 @@ Each ingested entity is stamped with:
 ## Related
 
 - [catalog-as-code proposal](../knowledge/corpus/proposals/catalog-as-code.md)
-- [roadmap.md](roadmap.md) — Phase 2C.2 ownership resolution
+- [roadmap.md](roadmap.md) — Phase 2C.2 ownership resolution ([catalog-ownership.md](catalog-ownership.md))

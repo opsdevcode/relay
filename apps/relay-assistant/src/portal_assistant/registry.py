@@ -14,6 +14,7 @@ REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
         "request_sandbox",
         "service_health",
         "list_platform_services",
+        "catalog_ownership",
     }
 )
 
@@ -33,6 +34,7 @@ DEFAULT_TOOL_DEFINITIONS: dict[str, ToolDefinition] = {
     "docs_search": ToolDefinition(kind="read"),
     "list_platform_services": ToolDefinition(kind="read"),
     "service_health": ToolDefinition(kind="read"),
+    "catalog_ownership": ToolDefinition(kind="read"),
     "scaffold_service": ToolDefinition(
         kind="write",
         requires_confirmation=True,
