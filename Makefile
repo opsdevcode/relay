@@ -1,4 +1,4 @@
-.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test backstage-e2e up-backstage down-backstage
+.PHONY: bootstrap up down logs ingest ingest-full install test test-local lint format typecheck security quality smoke verify ci build-k8s backstage-install backstage-dev backstage-test backstage-e2e up-backstage up-all down-backstage down-all
 
 PA := apps/relay-assistant
 BS := apps/backstage
@@ -19,8 +19,13 @@ down:
 up-backstage: bootstrap
 	$(COMPOSE) --profile backstage up --build -d
 
+# Alias: portal + Backstage (same as up-backstage).
+up-all: up-backstage
+
 down-backstage:
 	$(COMPOSE) --profile backstage down
+
+down-all: down-backstage
 
 logs:
 	$(COMPOSE) logs -f relay-assistant

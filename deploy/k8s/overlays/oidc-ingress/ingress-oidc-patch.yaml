@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: relay
+  namespace: relay
+  annotations:
+    # Requires oauth2-proxy (deploy/k8s/overlays/oidc-ingress/oauth2-proxy.example.yaml)
+    # and an nginx ingress controller. Replace hostnames with your environment.
+    nginx.ingress.kubernetes.io/auth-url: >-
+      http://oauth2-proxy.relay.svc.cluster.local:4180/oauth2/auth
+    nginx.ingress.kubernetes.io/auth-signin: >-
+      https://portal.example.com/oauth2/start?rd=$escaped_request_uri
+    nginx.ingress.kubernetes.io/auth-response-headers: >-
+      Authorization,X-Auth-Request-Email,X-Auth-Request-Groups,X-Auth-Request-User

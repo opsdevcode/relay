@@ -18,7 +18,7 @@ make smoke       # HTTP end-to-end check (stack must be running)
 make verify      # unit tests in container + smoke
 ```
 
-**Alternative (Docker Compose only):** from the repo root, the same portal stack is `docker compose up --build -d` (see [docs/local-compose.md](docs/local-compose.md)). Add Backstage with `docker compose --profile backstage up --build -d` or `make up-backstage`. Make remains the documented default for ingest, CI, and host Backstage dev.
+**Alternative (Docker Compose only):** from the repo root, the same portal stack is `docker compose up --build -d`. For **portal + Backstage in one command**, use `docker compose --profile backstage up --build -d`, `make up-all`, or set `COMPOSE_PROFILES=backstage` in `.env` — see [docs/local-compose.md](docs/local-compose.md). Make remains the documented default for ingest, CI, and host Backstage dev.
 
 Optional: set `LLM_PROVIDER` and provider credentials in `.env` for synthesized LLM answers instead of extractive excerpts (see `.env.example`).
 

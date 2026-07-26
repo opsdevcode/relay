@@ -1,6 +1,10 @@
 # Run from repo root:
-#   docker compose up --build -d              # portal stack (postgres, API, web)
-#   docker compose --profile backstage up --build -d   # + Backstage :3001 / :7007
+#   docker compose up --build -d
+#       → portal only (postgres, API :8080, web :3000)
+#   docker compose --profile backstage up --build -d
+#       → portal + Backstage (:3001 / :7007) — same as `make up-backstage`
+#   COMPOSE_PROFILES=backstage docker compose up --build -d
+#       → both (or uncomment COMPOSE_PROFILES in .env)
 #
 # Equivalent to: docker compose -f deploy/docker-compose.yml …
 include:

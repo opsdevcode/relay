@@ -27,12 +27,25 @@ Stop:
 docker compose down
 ```
 
-## Portal + Backstage (optional profile)
+## Portal + Backstage (one command)
 
 Adds **Backstage** on **:3001** (frontend) and **:7007** (backend). First start runs `yarn install` inside the container and can take several minutes.
 
+**Pick one:**
+
 ```bash
 docker compose --profile backstage up --build -d
+make up-backstage    # same
+make up-all          # alias for up-backstage
+```
+
+Or enable the profile by default via `.env` (Compose reads `COMPOSE_PROFILES` automatically):
+
+```bash
+# In .env (see .env.example)
+COMPOSE_PROFILES=backstage
+
+docker compose up --build -d   # portal + Backstage
 ```
 
 | URL | Service |
@@ -57,7 +70,8 @@ docker compose --profile backstage down
 | Goal | Compose | Make |
 | --- | --- | --- |
 | Portal stack | `docker compose up --build -d` | `make up` |
-| Portal + Backstage | `docker compose --profile backstage up --build -d` | `make up-backstage` |
+| Portal + Backstage | `docker compose --profile backstage up --build -d` | `make up-backstage` or `make up-all` |
+| Portal + Backstage (via `.env`) | `COMPOSE_PROFILES=backstage` then `docker compose up --build -d` | — |
 | Stop | `docker compose down` | `make down` |
 | Stop (with Backstage) | `docker compose --profile backstage down` | `make down-backstage` |
 | Ingest | `docker compose exec relay-assistant python -m rag_ingestion.cli ingest` | `make ingest` |
