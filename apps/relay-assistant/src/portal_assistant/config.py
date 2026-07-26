@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     ticket_intake_project: str = ""
     ticket_intake_issue_type: str = "Task"
     ticket_intake_url_template: str = ""
+    observability_provider: str = ""
+    grafana_base_url: str = ""
+    grafana_dashboard_path_template: str = "/d/{dashboard_uid}?var-service={service}"
+    grafana_default_dashboard_uid: str = ""
+    prometheus_base_url: str = ""
+    prometheus_api_token: str = ""
+    prometheus_alerts_query_template: str = ""
+    prometheus_burn_rate_query_template: str = ""
     audit_log_enabled: bool = True
     audit_query_secret: str = ""
 

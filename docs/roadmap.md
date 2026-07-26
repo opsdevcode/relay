@@ -2,7 +2,7 @@
 
 This document is the execution roadmap for the **working model** in this repository and the path to a **pilot-ready internal developer portal (IDP)**. It consolidates product phases, platform-service expansion, and engineering milestones in one place.
 
-**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [tdd.md](tdd.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [ticket-intake.md](ticket-intake.md) · [audit-log.md](audit-log.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
+**Related docs:** [local-setup.md](local-setup.md) · [local-testing.md](local-testing.md) · [tdd.md](tdd.md) · [corpus-pipeline.md](corpus-pipeline.md) · [scaffolding.md](scaffolding.md) · [ticket-intake.md](ticket-intake.md) · [audit-log.md](audit-log.md) · [observability-health.md](observability-health.md) · [kubernetes.md](kubernetes.md) · [security-governance.md](security-governance.md)
 
 ---
 
@@ -41,7 +41,7 @@ What ships in this repo today:
 | Local stack | Done | Postgres (FTS + pgvector extension), Redis, Relay API, web UI |
 | RAG | Done (FTS) | Auto-ingest on startup; bundled `knowledge/corpus/` (**15** sample docs) |
 | Answer modes | Done | Extractive (default); optional Anthropic API for synthesis |
-| Chat intents | Done | Regex routing: Q&A, services list, scaffold, sandbox, mock health |
+| Chat intents | Done | Regex routing: Q&A, services list, scaffold, sandbox, service health |
 | Scaffold action | Done | Draft → confirm → GitHub Actions workflow dispatch link |
 | Sandbox action | Done | Draft → confirm → GitHub issue template link |
 | Platform registry | Done (YAML) | Four services declared; **registry-driven routing** (1A.1) |
@@ -54,7 +54,7 @@ What ships in this repo today:
 | Corpus pipeline | Done (1B.2) | Filesystem + optional `type: git`; `make ingest-full`; `POST /internal/reindex` |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
 | Auth | Partial (1D.1–1D.3) | Local compose open; K8s OIDC; optional header context + confirm group checks |
-| Real observability | Not started | `service_health` returns mock data |
+| Real observability | Partial (2B.1) | Grafana deeplink + optional Prometheus; mock locally — [observability-health.md](observability-health.md) |
 
 Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
 
@@ -236,7 +236,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 2B.1 | Real `service_health` | Read-only query or deep link to Grafana for cataloged services |
+| 2B.1 | Real `service_health` | Read-only query or deep link to Grafana for cataloged services — **done** (`observability.py`, [observability-health.md](../docs/observability-health.md)) |
 | 2B.2 | Embedded view | `grafana-embed` view type in registry backed by real URL template |
 | 2B.3 | SLO summary in chat | Burn rate / alert count from metrics backend (not mock) |
 
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2B.1** Real `service_health` — read-only query or deep link to Grafana for cataloged services
+1. Phase **2B.2** Embedded view — `grafana-embed` view type in registry backed by real URL template
 
-Phase **1** workstreams **1A–1D** and **2A** are on `main`.
+Phase **1** workstreams **1A–1D** and **2A** are on `main`. Phase **2B.1** (service health) ships with this doc.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

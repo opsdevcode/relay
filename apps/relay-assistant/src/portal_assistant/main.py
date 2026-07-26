@@ -19,6 +19,7 @@ from portal_assistant.audit_log import (
 )
 from portal_assistant.config import settings
 from portal_assistant.llm_providers import resolve_synthesis_provider
+from portal_assistant.observability import resolve_observability_provider
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
 from portal_assistant.sessions import SessionStore, create_session_store
 from portal_assistant.store import DocumentStore
@@ -133,6 +134,7 @@ def health() -> dict:
         "user_context_headers_enabled": settings.user_context_headers_enabled,
         "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
         "ticket_intake_provider": resolve_ticket_intake_provider(settings),
+        "observability_provider": resolve_observability_provider(settings),
         "audit_log_enabled": settings.audit_log_enabled,
     }
 

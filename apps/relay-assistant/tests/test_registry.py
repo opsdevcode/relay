@@ -16,6 +16,8 @@ def test_load_registry_config_has_services_and_routing():
     assert len(config.services) >= 4
     assert len(config.routing) >= 5
     assert validate_registry_config(config) == []
+    assert config.observability is not None
+    assert "demo-api" in (config.observability.catalog or {})
     scaffold = config.tool_definition("scaffold_service")
     assert "relay-platform-admins" in scaffold.confirm_allowed_groups
 
