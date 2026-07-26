@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: scaffolded-service-examples
+  description: Golden-path services under examples/services/ (Phase 2A.1)
+spec:
+  type: file
+  targets:
+    - ../../examples/services/demo-api/catalog-info.yaml

@@ -9,6 +9,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[3]
 APP_CONFIG = REPO_ROOT / "apps" / "backstage" / "app-config.yaml"
 CATALOG_REL = "../../../../catalog/entities/catalog.yaml"
+SCAFFOLDED_LOC_REL = "../../../../catalog/entities/scaffolded-services.yaml"
 TEMPLATE_REL = "../../../../templates/k8s-service/template.yaml"
 TEMPLATE_PATH = REPO_ROOT / "templates" / "k8s-service" / "template.yaml"
 
@@ -24,6 +25,15 @@ def test_backstage_catalog_location_imports_repo_entities():
     assert CATALOG_REL in targets, (
         f"expected catalog location {CATALOG_REL!r} in app-config locations={targets}"
     )
+    assert SCAFFOLDED_LOC_REL in targets
+
+
+def test_backstage_scaffolded_location_path_resolves():
+    backend_cwd = REPO_ROOT / "apps" / "backstage" / "packages" / "backend"
+    resolved = (backend_cwd / SCAFFOLDED_LOC_REL).resolve()
+    expected = (REPO_ROOT / "catalog" / "entities" / "scaffolded-services.yaml").resolve()
+    assert resolved == expected
+    assert resolved.is_file()
 
 
 def test_backstage_catalog_registers_k8s_template():

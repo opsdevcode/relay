@@ -227,7 +227,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 2A.1 | Golden-path scaffold PR | Workflow opens PR under agreed path; includes `catalog-info.yaml` stamp |
+| 2A.1 | Golden-path scaffold PR | Workflow opens PR under agreed path; includes `catalog-info.yaml` stamp — **done** (`scaffold-k8s-service.yml`, `relay.dev/*` stamp, Backstage Location) |
 | 2A.2 | Ticket system handoff | Replace sandbox issue stub with ServiceNow/Jira (or org standard) via approved integration |
 | 2A.3 | Risk-tier aware drafts | PR templates respect CODEOWNERS / change tiers documented in knowledge corpus |
 | 2A.4 | Audit log | Prompt, retrieval sources, tool calls, confirm events persisted and queryable |
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2A.1** Golden-path scaffold PR — workflow opens PR under agreed path with `catalog-info.yaml`
+1. Phase **2A.2** Ticket system handoff — replace sandbox issue stub with org-standard intake
 
-Phase **1** workstreams **1A–1D** are on `main` (identity pilot complete for non-prod).
+Phase **1** workstreams **1A–1D** and **2A.1** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).
