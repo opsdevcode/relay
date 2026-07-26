@@ -1,3 +1,3 @@
 """Portal Assistant — conversational IDP backend."""
 
-__version__ = "1.18.1"
+__version__ = "1.19.0"
