@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from portal_assistant.audit_log import AuditLogStore
+from portal_assistant.injection_defenses import (
+    guard_tool_selection,
+    moderate_assistant_output,
+)
 from portal_assistant.registry import RegistryConfig, load_registry_config, resolve_tool
 from portal_assistant.sessions import apply_follow_up_refinement
 from portal_assistant.store import DocumentStore
@@ -75,6 +79,7 @@ async def run_chat_graph(
 
     effective_message = apply_follow_up_refinement(message, turns)
     tool_id = resolve_tool(effective_message, cfg)
+    tool_id = guard_tool_selection(effective_message, tool_id, cfg)
     tool_def = cfg.tool_definition(tool_id)
 
     raw = await dispatch_tool(
@@ -83,6 +88,9 @@ async def run_chat_graph(
 
     if tool_def.kind == "write":
         guarded = enforce_write_tool_result(tool_id, raw)
+        answer, _blocked = moderate_assistant_output(guarded.get("answer", ""))
+        guarded = {**guarded, "answer": answer}
         return guarded, GraphTrace(path="write", tool_id=tool_id)
 
-    return raw, GraphTrace(path="read", tool_id=tool_id)
+    answer, _blocked = moderate_assistant_output(raw.get("answer", ""))
+    return {**raw, "answer": answer}, GraphTrace(path="read", tool_id=tool_id)
