@@ -53,7 +53,7 @@ What ships in this repo today:
 | Semantic RAG | Done (hybrid baseline) | Local hash embeddings + FTS RRF in Postgres/pgvector |
 | Corpus pipeline | Done (1B.2) | Filesystem + optional `type: git`; `make ingest-full`; `POST /internal/reindex` |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
-| Auth | Partial (1D.1–1D.2) | Local compose open; K8s OIDC overlay; optional `X-Auth-Request-*` → retrieval filter when enabled |
+| Auth | Partial (1D.1–1D.3) | Local compose open; K8s OIDC; optional header context + confirm group checks |
 | Real observability | Not started | `service_health` returns mock data |
 
 Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
@@ -207,7 +207,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 | --- | --- | --- |
 | 1D.1 | OIDC at ingress | Unauthenticated access disabled outside local compose — **done** (`overlays/oidc-ingress`, [identity-ingress.md](../docs/identity-ingress.md)) |
 | 1D.2 | User context in API | Subject + groups passed to retrieval (prep for ABAC) — **done** (`user_context.py`, `USER_CONTEXT_HEADERS_ENABLED`) |
-| 1D.3 | Confirm action authorization | Only entitled users can confirm mutating drafts |
+| 1D.3 | Confirm action authorization | Only entitled users can confirm mutating drafts — **done** (`action_authorization.py`, registry `confirm_allowed_groups`) |
 
 ### Milestone M1: Design-partner alpha
 
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **1D.3** Confirm action authorization — only entitled users can confirm mutating drafts
+1. Phase **2A.1** Golden-path scaffold PR — workflow opens PR under agreed path with `catalog-info.yaml`
 
-Phase **1A.***, **1B.1–1B.4**, **1C.1–1C.4**, **1D.1**, and **1D.2** are on `main`.
+Phase **1** workstreams **1A–1D** are on `main` (identity pilot complete for non-prod).
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

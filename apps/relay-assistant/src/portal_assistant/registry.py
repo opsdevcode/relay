@@ -23,15 +23,39 @@ REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
 class ToolDefinition:
     kind: str = "read"
     requires_confirmation: bool = False
+    confirm_allowed_groups: tuple[str, ...] = ()
 
 
 DEFAULT_TOOL_DEFINITIONS: dict[str, ToolDefinition] = {
     "docs_search": ToolDefinition(kind="read"),
     "list_platform_services": ToolDefinition(kind="read"),
     "service_health": ToolDefinition(kind="read"),
-    "scaffold_service": ToolDefinition(kind="write", requires_confirmation=True),
-    "request_sandbox": ToolDefinition(kind="write", requires_confirmation=True),
+    "scaffold_service": ToolDefinition(
+        kind="write",
+        requires_confirmation=True,
+        confirm_allowed_groups=("relay-platform-admins",),
+    ),
+    "request_sandbox": ToolDefinition(
+        kind="write",
+        requires_confirmation=True,
+        confirm_allowed_groups=("relay-platform-admins", "relay-sandbox-users"),
+    ),
 }
+
+
+def _parse_group_list(raw: object) -> tuple[str, ...]:
+    if not raw:
+        return ()
+    if isinstance(raw, str):
+        return tuple(part.strip() for part in raw.split(",") if part.strip())
+    if isinstance(raw, list):
+        out: list[str] = []
+        for item in raw:
+            token = str(item).strip()
+            if token:
+                out.append(token)
+        return tuple(out)
+    return ()
 
 
 def _parse_tools(raw: dict[str, Any] | None) -> dict[str, ToolDefinition]:
@@ -47,6 +71,7 @@ def _parse_tools(raw: dict[str, Any] | None) -> dict[str, ToolDefinition]:
         tools[str(tool_id)] = ToolDefinition(
             kind=kind,
             requires_confirmation=bool(entry.get("requires_confirmation")),
+            confirm_allowed_groups=_parse_group_list(entry.get("confirm_allowed_groups")),
         )
     return tools
 

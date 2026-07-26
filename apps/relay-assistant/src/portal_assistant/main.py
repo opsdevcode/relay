@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from portal_assistant import __version__
+from portal_assistant.action_authorization import require_confirm_authorization
 from portal_assistant.agent import handle_message
 from portal_assistant.config import settings
 from portal_assistant.llm_providers import resolve_synthesis_provider
@@ -121,6 +122,7 @@ def health() -> dict:
         "retrieval_mode": store.retrieval_mode(),
         "api_keys_required": False,
         "user_context_headers_enabled": settings.user_context_headers_enabled,
+        "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
     }
 
 
@@ -160,11 +162,23 @@ async def chat(
 
 
 @app.post("/actions/confirm")
-async def confirm_action(body: ConfirmRequest) -> dict:
+async def confirm_action(
+    body: ConfirmRequest,
+    x_auth_request_user: str | None = Header(default=None, alias="X-Auth-Request-User"),
+    x_auth_request_email: str | None = Header(default=None, alias="X-Auth-Request-Email"),
+    x_auth_request_groups: str | None = Header(default=None, alias="X-Auth-Request-Groups"),
+) -> dict:
     draft = body.draft or {}
     action = draft.get("action")
     if not action:
         raise HTTPException(status_code=400, detail="Missing draft action")
+
+    user = _resolve_user_context(
+        x_auth_request_user,
+        x_auth_request_email,
+        x_auth_request_groups,
+    )
+    require_confirm_authorization(user, str(action))
 
     if action == "scaffold_service":
         return confirm_scaffold_draft(draft)

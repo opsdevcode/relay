@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     github_repo: str = "opsdevcode/relay"
     # When true, trust X-Auth-Request-* from oauth2-proxy behind ingress. Off locally.
     user_context_headers_enabled: bool = False
+    # When true, POST /actions/confirm requires entitled IdP groups (see registry tools).
+    confirm_action_authorization_enabled: bool = False
+    # Fallback allowed groups (comma-separated) when a write tool omits confirm_allowed_groups.
+    confirm_allowed_groups: str = ""
 
 
 settings = Settings()

@@ -91,6 +91,11 @@ tools:
   scaffold_service:
     kind: write
     requires_confirmation: true
+    confirm_allowed_groups:
+      - relay-platform-admins
   request_sandbox:
     kind: write
     requires_confirmation: true
+    confirm_allowed_groups:
+      - relay-platform-admins
+      - relay-sandbox-users

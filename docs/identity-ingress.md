@@ -52,9 +52,15 @@ Hybrid/FTS retrieval then filters chunks to **`visibility = public`**, **`doc_ow
 
 Set in K8s via ConfigMap `relay-assistant-config` (see base manifest).
 
-### Not done yet
+### Confirm authorization (1D.3)
 
-- **1D.3** — Confirm/scaffold actions are not yet tied to IdP groups.
+When **`CONFIRM_ACTION_AUTHORIZATION_ENABLED=true`**, `POST /actions/confirm` requires the same
+oauth2-proxy headers. The user’s **`X-Auth-Request-Groups`** must intersect the tool’s
+**`confirm_allowed_groups`** in `packages/platform-services/registry.yaml` (for example
+`relay-platform-admins` for scaffold). Optional env **`CONFIRM_ALLOWED_GROUPS`** supplies a
+comma-separated fallback when a write tool omits groups in the registry.
+
+Local compose keeps this **off** so smoke tests and demos can confirm drafts without SSO.
 
 Ingress OIDC blocks anonymous **browser** access; lock down direct Service/ClusterIP access with NetworkPolicy in your environment repo.
 
