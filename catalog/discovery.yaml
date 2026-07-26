@@ -1,0 +1,11 @@
+# Active discovery config (see discovery.example.yaml). Committed for local demo;
+# override org/repos for your pilot.
+github:
+  org: opsdevcode
+  repos:
+    - relay
+  paths:
+    - examples/services/demo-api/catalog-info.yaml
+  max_repos: 50
+
+output_path: catalog/entities/discovered-github.yaml

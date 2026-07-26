@@ -58,7 +58,7 @@ warn_unused_ignores = true
 check_untyped_defs = true
 no_implicit_optional = true
 mypy_path = ["src"]
-packages = ["portal_assistant", "rag_ingestion"]
+packages = ["portal_assistant", "rag_ingestion", "catalog_discovery"]
 
 [[tool.mypy.overrides]]
 module = ["redis.*", "psycopg.*", "yaml.*"]

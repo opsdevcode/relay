@@ -66,6 +66,13 @@ def test_backstage_catalog_location_allows_component_user_group():
         assert kind in allowed, f"{kind} must be allowed for seed catalog import"
 
 
+def test_backstage_catalog_location_imports_discovered_github():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    locations = (data.get("catalog") or {}).get("locations") or []
+    targets = [loc.get("target") for loc in locations if isinstance(loc, dict)]
+    assert "../../../../catalog/entities/discovered-github-location.yaml" in targets
+
+
 def test_backstage_frontend_port_avoids_relay_web():
     data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
     base_url = (data.get("app") or {}).get("baseUrl", "")

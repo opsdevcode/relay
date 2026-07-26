@@ -9,6 +9,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from catalog_discovery.sync import discovery_status, run_discovery
 from portal_assistant import __version__
 from portal_assistant.action_authorization import require_confirm_authorization
 from portal_assistant.agent import handle_message
@@ -146,6 +147,7 @@ def health() -> dict:
         "observability_provider": resolve_observability_provider(settings),
         "observability_metrics_live": observability_metrics_configured(settings),
         "audit_log_enabled": settings.audit_log_enabled,
+        **discovery_status(),
     }
 
 
@@ -279,6 +281,30 @@ def reindex_corpus(
         "documents": store.count(),
         "retrieval_mode": store.retrieval_mode(),
     }
+
+
+@app.post("/internal/catalog-discovery/sync")
+def sync_catalog_discovery(
+    x_ingest_secret: str | None = Header(default=None, alias="X-Ingest-Secret"),
+) -> dict:
+    """Run GitHub catalog-info discovery (same secret as ``/internal/reindex``)."""
+    expected = settings.ingest_webhook_secret
+    if not expected:
+        raise HTTPException(status_code=503, detail="Ingest webhook not configured")
+    provided = x_ingest_secret or ""
+    try:
+        ok = bool(provided) and secrets.compare_digest(provided, expected)
+    except (TypeError, ValueError):
+        ok = False
+    if not ok:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        return run_discovery()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Catalog discovery failed")
+        raise HTTPException(status_code=500, detail=f"Catalog discovery failed: {exc}") from exc
 
 
 @app.get("/internal/audit-events")

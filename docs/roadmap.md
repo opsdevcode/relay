@@ -244,7 +244,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 2C.1 | GitHub discovery | Processor ingests `catalog-info.yaml` from in-scope org repos |
+| 2C.1 | GitHub discovery | Processor ingests `catalog-info.yaml` from in-scope org repos — **done** (`catalog_discovery`, [catalog-discovery.md](../docs/catalog-discovery.md)) |
 | 2C.2 | Ownership resolution | “Who owns X?” answers from catalog, not only docs |
 | 2C.3 | On-call linkage | Optional integration to paging/on-call API |
 
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2C.1** GitHub discovery — processor ingests `catalog-info.yaml` from in-scope org repos
+1. Phase **2C.2** Ownership resolution — “Who owns X?” answers from catalog, not only docs
 
-Phase **1** workstreams **1A–1D** and **2A–2B** are on `main`.
+Phase **1** workstreams **1A–1D** and **2A–2B** are on `main`. Phase **2C.1** (GitHub catalog discovery) ships with this doc.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).
