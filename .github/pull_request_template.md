@@ -1,3 +1,19 @@
+## Risk tier (GitOps)
+
+Align with [knowledge/corpus/docs/gitops-workflow.md](../knowledge/corpus/docs/gitops-workflow.md):
+
+| Tier | Typical change | Required review |
+| --- | --- | --- |
+| **L0** | Docs, non-prod config | Peer |
+| **L1** | Team-scoped module bump | Team lead |
+| **L2** | Production infra | Eng + SRE |
+| **L3** | Security-sensitive | Eng + SRE + Security |
+
+**This PR:** tier **<!-- L0–L3 -->** — <!-- review expectations -->
+
+- [ ] CODEOWNERS approvals match the tier above
+- [ ] CI green; no direct prod apply outside pipeline
+
 ## Summary
 
 <!-- What changed and why? Keep this focused on intent and impact. -->

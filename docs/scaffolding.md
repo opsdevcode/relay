@@ -9,7 +9,7 @@ The working model uses **draft-and-route**: the Portal Assistant prepares a scaf
 3. UI opens `Scaffold K8s Service` on GitHub Actions with suggested inputs
 4. You click **Run workflow** in GitHub
 5. Actions renders `templates/k8s-service/` into `examples/services/<name>/` and opens a PR using the built-in `GITHUB_TOKEN`
-6. The PR includes a stamped **`catalog-info.yaml`** (`relay.dev/scaffold-template`, `relay.dev/scaffold-path`) and updates **`catalog/entities/scaffolded-services.yaml`** so Backstage imports the new component after merge.
+6. The PR includes a stamped **`catalog-info.yaml`** (`relay.dev/scaffold-*` stamps) and updates **`catalog/entities/scaffolded-services.yaml`** for Backstage. The PR body includes **risk tier L0** and **CODEOWNERS** expectations ([gitops-workflow.md](../knowledge/corpus/docs/gitops-workflow.md)).
 
 ## Agreed output path (Phase 2A.1)
 

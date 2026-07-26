@@ -54,3 +54,11 @@ def test_scaffold_workflow_verifies_catalog_stamp():
     assert "Verify catalog-info stamp" in workflow
     assert "relay.dev/scaffold-template" in workflow
     assert "Ensure target path is free" in workflow
+
+
+def test_scaffold_workflow_uses_risk_tier_pr_body():
+    workflow = (REPO_ROOT / ".github/workflows/scaffold-k8s-service.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "render-scaffold-pr-body.py" in workflow
+    assert "body-path:" in workflow

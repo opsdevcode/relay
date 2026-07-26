@@ -28,4 +28,5 @@ def test_confirm_scaffold_draft_uses_chat_draft_shape():
     draft = draft_scaffold("payments-api", "Payments service")
     result = confirm_scaffold_draft(draft)
     assert result["inputs"]["service_name"] == "payments-api"
-    assert "payments-api" in result["message"]
+    assert result["risk_tier"] == "L0"
+    assert "gitops-workflow.md" in result["pr_body_preview"]

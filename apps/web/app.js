@@ -43,7 +43,8 @@ function formatDraftLabel(draft) {
     return `Scaffold <strong>${escapeHtml(name)}</strong>`;
   }
   if (draft.action === "request_sandbox") {
-    return "Request sandbox";
+    const tier = draft.risk_tier ? ` (${draft.risk_tier})` : "";
+    return `Request sandbox${tier}`;
   }
   return escapeHtml(draft.action || "action");
 }

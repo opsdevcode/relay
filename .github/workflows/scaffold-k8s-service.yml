@@ -74,6 +74,14 @@ jobs:
           grep -q 'relay.dev/scaffold-template: k8s-golden-path' "$catalog"
           grep -q 'relay.dev/scaffold-path: examples/services/${{ inputs.service_name }}' "$catalog"
 
+      - name: Render PR body (risk tier + CODEOWNERS)
+        env:
+          SERVICE_NAME: ${{ inputs.service_name }}
+          DESCRIPTION: ${{ inputs.description }}
+          GITHUB_ORG: ${{ inputs.github_org }}
+          OWNER: ${{ inputs.owner }}
+        run: PYTHONPATH=apps/relay-assistant/src python3 scripts/render-scaffold-pr-body.py > /tmp/scaffold-pr-body.md
+
       - name: Open pull request
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
@@ -81,18 +89,4 @@ jobs:
           delete-branch: true
           title: "scaffold: add ${{ inputs.service_name }} (k8s golden path)"
           commit-message: "scaffold: add ${{ inputs.service_name }}"
-          body: |
-            ## Summary
-            Scaffold **`${{ inputs.service_name }}`** from the k8s-service golden path via Relay workflow dispatch.
-
-            ## Inputs
-            - **service_name:** `${{ inputs.service_name }}`
-            - **description:** ${{ inputs.description }}
-            - **github_org:** `${{ inputs.github_org }}`
-            - **owner:** `${{ inputs.owner }}`
-
-            ## Review checklist
-            - [ ] `catalog-info.yaml` relay.dev scaffold stamp and Backstage owner look correct
-            - [ ] Service name and catalog metadata look correct
-            - [ ] K8s manifests fit your cluster conventions
-            - [ ] CI/CD wiring added (if needed) before merge
+          body-path: /tmp/scaffold-pr-body.md
