@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     confirm_action_authorization_enabled: bool = False
     # Fallback allowed groups (comma-separated) when a write tool omits confirm_allowed_groups.
     confirm_allowed_groups: str = ""
+    # Sandbox confirm handoff (Phase 2A.2): github_issue | jira | servicenow | url_template
+    ticket_intake_provider: str = "github_issue"
+    ticket_intake_base_url: str = ""
+    ticket_intake_username: str = ""
+    ticket_intake_api_token: str = ""
+    ticket_intake_project: str = ""
+    ticket_intake_issue_type: str = "Task"
+    ticket_intake_url_template: str = ""
 
 
 settings = Settings()

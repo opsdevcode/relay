@@ -4,6 +4,7 @@ import logging
 import secrets
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -16,6 +17,7 @@ from portal_assistant.llm_providers import resolve_synthesis_provider
 from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_draft
 from portal_assistant.sessions import SessionStore, create_session_store
 from portal_assistant.store import DocumentStore
+from portal_assistant.ticket_intake import handoff_sandbox_request, resolve_ticket_intake_provider
 from portal_assistant.tools import load_registry
 from portal_assistant.user_context import UserContext, parse_user_context_from_headers
 
@@ -123,6 +125,7 @@ def health() -> dict:
         "api_keys_required": False,
         "user_context_headers_enabled": settings.user_context_headers_enabled,
         "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
+        "ticket_intake_provider": resolve_ticket_intake_provider(settings),
     }
 
 
@@ -184,16 +187,14 @@ async def confirm_action(
         return confirm_scaffold_draft(draft)
 
     if action == "request_sandbox":
-        issue_url = (
-            f"https://github.com/{settings.github_repo}/issues/new"
-            "?template=sandbox-request.md"
-            f"&title={draft.get('purpose', 'Sandbox request')[:80]}"
-        )
-        return {
-            "status": "issue_template",
-            "message": "Open the GitHub issue template to file your sandbox request.",
-            "issue_url": issue_url,
-        }
+        try:
+            result = await handoff_sandbox_request(draft, user=user)
+        except ValueError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except httpx.HTTPError as exc:
+            logger.exception("Ticket intake failed")
+            raise HTTPException(status_code=502, detail="Ticket system handoff failed") from exc
+        return result.as_response()
 
     raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
 

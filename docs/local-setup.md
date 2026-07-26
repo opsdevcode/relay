@@ -39,7 +39,7 @@ That's it — **no API keys, no manual ingest**. On first start the Portal Assis
 | "What are the required resource tags?" | Excerpt from `standards/resource-tagging.md` |
 | "What platform services are available?" | Lists registry |
 | "Create a new service called demo-api" | Draft → Confirm → GitHub Actions workflow link |
-| "I need a sandbox for a POC" | Draft → Confirm → GitHub issue template link |
+| "I need a sandbox for a POC" | Draft → Confirm → ticket intake link ([ticket-intake.md](ticket-intake.md); default GitHub issue template) |
 
 ## Troubleshooting
 
