@@ -53,6 +53,7 @@
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)
 - [ ] Draft-and-route preserved (no direct prod mutation from chat)
 - [ ] New behavior: **unit tests + E2E updates** per [docs/tdd.md](docs/tdd.md)
+- [ ] Roadmap item shipped: updated [docs/roadmap.md](docs/roadmap.md) (done row + **what to build next**)
 - [ ] Actions pinned to full SHAs (repo policy)
 - [ ] Secrets/credentials are not committed or logged
 

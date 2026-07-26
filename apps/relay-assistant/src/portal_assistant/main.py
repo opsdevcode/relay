@@ -16,8 +16,23 @@ from portal_assistant.scaffold import build_workflow_dispatch, confirm_scaffold_
 from portal_assistant.sessions import SessionStore, create_session_store
 from portal_assistant.store import DocumentStore
 from portal_assistant.tools import load_registry
+from portal_assistant.user_context import UserContext, parse_user_context_from_headers
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_user_context(
+    x_auth_request_user: str | None,
+    x_auth_request_email: str | None,
+    x_auth_request_groups: str | None,
+) -> UserContext | None:
+    if not settings.user_context_headers_enabled:
+        return None
+    return parse_user_context_from_headers(
+        x_auth_request_user=x_auth_request_user,
+        x_auth_request_email=x_auth_request_email,
+        x_auth_request_groups=x_auth_request_groups,
+    )
 
 
 class ChatRequest(BaseModel):
@@ -105,6 +120,7 @@ def health() -> dict:
         "llm_provider": llm_provider,
         "retrieval_mode": store.retrieval_mode(),
         "api_keys_required": False,
+        "user_context_headers_enabled": settings.user_context_headers_enabled,
     }
 
 
@@ -122,12 +138,23 @@ def scaffold_link(service_name: str, description: str = "") -> dict:
 
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(body: ChatRequest) -> ChatResponse:
+async def chat(
+    body: ChatRequest,
+    x_auth_request_user: str | None = Header(default=None, alias="X-Auth-Request-User"),
+    x_auth_request_email: str | None = Header(default=None, alias="X-Auth-Request-Email"),
+    x_auth_request_groups: str | None = Header(default=None, alias="X-Auth-Request-Groups"),
+) -> ChatResponse:
+    user = _resolve_user_context(
+        x_auth_request_user,
+        x_auth_request_email,
+        x_auth_request_groups,
+    )
     result = await handle_message(
         body.message.strip(),
         store,
         session_store=session_store,
         thread_id=body.thread_id,
+        user=user,
     )
     return ChatResponse(**result)
 

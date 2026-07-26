@@ -48,12 +48,12 @@ What ships in this repo today:
 | K8s manifests | Done (base) | Portal web + assistant; no in-cluster DB/corpus yet |
 | Local testing | Done (baseline) | `make ci`, `make smoke`, `make verify`; see [local-testing.md](local-testing.md) |
 | CI / PR workflow | Done | Repave-style workflows + ruleset JSON + [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| Backstage | Done (1C.1) | `apps/backstage` imports `catalog/entities/catalog.yaml` (guest auth; port 3001) |
+| Backstage | Done (1C.1–1C.4) | Catalog, `/relay` embed, TechDocs, scaffolder template; compose profile — see [local-compose.md](local-compose.md) |
 | Teams / Slack | Planned | Same API; adapters not built |
 | Semantic RAG | Done (hybrid baseline) | Local hash embeddings + FTS RRF in Postgres/pgvector |
 | Corpus pipeline | Done (1B.2) | Filesystem + optional `type: git`; `make ingest-full`; `POST /internal/reindex` |
 | Redis sessions | Done (working model) | Thread id in `/chat`; history in Redis; scaffold name follow-ups |
-| Auth | Not started | Open API in local demo |
+| Auth | Partial (1D.1–1D.2) | Local compose open; K8s OIDC overlay; optional `X-Auth-Request-*` → retrieval filter when enabled |
 | Real observability | Not started | `service_health` returns mock data |
 
 Run **`make ci`** anytime (no stack). After **`make up`**, run **`make smoke`** or **`make verify`** — see [local-testing.md](local-testing.md).
@@ -206,7 +206,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 | ID | Work | Exit criteria |
 | --- | --- | --- |
 | 1D.1 | OIDC at ingress | Unauthenticated access disabled outside local compose — **done** (`overlays/oidc-ingress`, [identity-ingress.md](../docs/identity-ingress.md)) |
-| 1D.2 | User context in API | Subject + groups passed to retrieval (prep for ABAC) |
+| 1D.2 | User context in API | Subject + groups passed to retrieval (prep for ABAC) — **done** (`user_context.py`, `USER_CONTEXT_HEADERS_ENABLED`) |
 | 1D.3 | Confirm action authorization | Only entitled users can confirm mutating drafts |
 
 ### Milestone M1: Design-partner alpha
@@ -376,12 +376,18 @@ Current registered services (working model):
 
 ## How this doc stays current
 
-- Update **Current state** when milestones land on `main`.
+**Every PR that completes a roadmap ID (e.g. 1D.2) must update this file in the same merge**, so `main` always reflects what shipped and what to build next.
+
+- Mark the workstream row **done** (with a short pointer to code or docs).
+- Update **Quick reference — what to build next** to the following item.
+- Update **Current state** when the baseline table is wrong (auth, Backstage, RAG, etc.).
 - Update **Semver releases vs roadmap** (shipped tag rows and dates) when a GitHub Release is published.
 - Add rows to phase tables when scope changes; do not delete completed items — mark done with date in PR description.
 - Keep README **Status** table as a one-line summary linking here:
 
   `See [docs/roadmap.md](roadmap.md) for the full plan.`
+
+See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 ---
 
@@ -389,9 +395,9 @@ Current registered services (working model):
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **1D.2** User context in API — subject + groups passed to retrieval (prep for ABAC)
+1. Phase **1D.3** Confirm action authorization — only entitled users can confirm mutating drafts
 
-Phase **1A.***, **1B.1–1B.4**, **1C.1–1C.4**, and **1D.1** are on `main`.
+Phase **1A.***, **1B.1–1B.4**, **1C.1–1C.4**, **1D.1**, and **1D.2** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).

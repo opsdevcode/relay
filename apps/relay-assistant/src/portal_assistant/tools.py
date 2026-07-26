@@ -6,6 +6,7 @@ from portal_assistant.llm import synthesize
 from portal_assistant.registry import load_registry_config
 from portal_assistant.scaffold import build_workflow_dispatch
 from portal_assistant.store import DocumentStore
+from portal_assistant.user_context import UserContext
 
 
 def load_registry() -> list[dict]:
@@ -75,7 +76,13 @@ def draft_sandbox_request(purpose: str, budget: str = "500") -> dict:
     }
 
 
-async def dispatch_tool(tool_id: str, message: str, store: DocumentStore) -> dict:
+async def dispatch_tool(
+    tool_id: str,
+    message: str,
+    store: DocumentStore,
+    *,
+    user: UserContext | None = None,
+) -> dict:
     if tool_id == "list_platform_services":
         return {"answer": list_platform_services(), "citations": [], "draft": None}
 
@@ -103,7 +110,7 @@ async def dispatch_tool(tool_id: str, message: str, store: DocumentStore) -> dic
         }
 
     if tool_id == "docs_search":
-        hits = store.search(message)
+        hits = store.search(message, user=user)
         citations = [{"source": h["source"], "title": h["title"]} for h in hits]
         answer = await synthesize(message, hits)
         return {"answer": answer, "citations": citations, "draft": None}

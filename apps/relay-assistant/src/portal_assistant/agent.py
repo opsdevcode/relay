@@ -3,6 +3,7 @@ from __future__ import annotations
 from portal_assistant.graph import run_chat_graph
 from portal_assistant.sessions import SessionStore
 from portal_assistant.store import DocumentStore
+from portal_assistant.user_context import UserContext
 
 
 async def handle_message(
@@ -11,6 +12,7 @@ async def handle_message(
     *,
     session_store: SessionStore | None = None,
     thread_id: str | None = None,
+    user: UserContext | None = None,
 ) -> dict:
     sessions = session_store
     tid = sessions.ensure_thread_id(thread_id) if sessions else (thread_id or "")
@@ -20,6 +22,7 @@ async def handle_message(
         message,
         store,
         prior_turns=prior_turns,
+        user=user,
     )
 
     if sessions and tid:

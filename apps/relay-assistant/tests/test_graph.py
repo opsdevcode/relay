@@ -30,7 +30,7 @@ def test_enforce_write_without_draft():
 @pytest.mark.asyncio
 async def test_run_chat_graph_write_path():
     class FakeStore:
-        def search(self, _query: str) -> list:
+        def search(self, _query: str, **kwargs: object) -> list:
             return []
 
     result, trace = await run_chat_graph(
@@ -46,7 +46,7 @@ async def test_run_chat_graph_write_path():
 @pytest.mark.asyncio
 async def test_run_chat_graph_read_path():
     class FakeStore:
-        def search(self, _query: str) -> list:
+        def search(self, _query: str, **kwargs: object) -> list:
             return []
 
     result, trace = await run_chat_graph(
