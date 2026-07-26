@@ -27,4 +27,4 @@ No extra env vars. Keep catalog files valid and run **`make catalog-discover`** 
 ## Related
 
 - [catalog-discovery.md](catalog-discovery.md) — Phase 2C.1
-- [roadmap.md](roadmap.md) — Phase 2C.3 on-call linkage
+- [roadmap.md](roadmap.md) — Phase 2C.3 on-call linkage ([on-call-linkage.md](on-call-linkage.md))
