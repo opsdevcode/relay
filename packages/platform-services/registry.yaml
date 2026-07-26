@@ -103,6 +103,8 @@ tools:
 # Pilot service → Grafana dashboard mapping (Phase 2B.1). Extend for design partners.
 observability:
   grafana_path_template: "/d/{dashboard_uid}?orgId=1&var-service={service}"
+  grafana_embed_path_template: "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
+  default_embed_service: demo-api
   catalog:
     demo-api:
       dashboard_uid: relay-demo

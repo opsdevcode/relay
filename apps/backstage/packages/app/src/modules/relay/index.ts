@@ -3,6 +3,7 @@ import {
   PageBlueprint,
 } from '@backstage/frontend-plugin-api';
 import ChatIcon from '@material-ui/icons/Chat';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import { createElement } from 'react';
 
 const relayChatPage = PageBlueprint.make({
@@ -17,8 +18,20 @@ const relayChatPage = PageBlueprint.make({
   },
 });
 
+const observabilityPage = PageBlueprint.make({
+  name: 'observability',
+  params: {
+    path: '/observability',
+    title: 'Observability',
+    icon: createElement(ShowChartIcon, { fontSize: 'inherit' }),
+    noHeader: true,
+    loader: () =>
+      import('./GrafanaEmbedPage').then(m => createElement(m.GrafanaEmbedPage)),
+  },
+});
+
 export const relayChatPlugin = createFrontendPlugin({
   pluginId: 'relay-chat',
   title: 'Relay Assistant',
-  extensions: [relayChatPage],
+  extensions: [relayChatPage, observabilityPage],
 });

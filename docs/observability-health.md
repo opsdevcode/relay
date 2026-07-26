@@ -65,7 +65,27 @@ PROMETHEUS_BASE_URL=https://prometheus.company.com
 PROMETHEUS_API_TOKEN=...   # in K8s Secret
 ```
 
+## Grafana embed view (Phase 2B.2)
+
+Registry `views: [grafana-embed]` on **observability-insight** resolves an iframe URL from:
+
+- `observability.grafana_embed_path_template` (default includes `kiosk`)
+- `observability.default_embed_service` and `observability.catalog` dashboard UIDs
+- `GRAFANA_BASE_URL` at runtime
+
+**API**
+
+- `GET /platform-services` — each service may include `view_urls.grafana_embed`
+- `GET /platform-services/observability-insight/grafana-embed?service=demo-api` — embed URL for a catalog slug
+
+**UI**
+
+- Relay web (`apps/web`) — panel above chat when the view is registered
+- Backstage — `/observability` page (fetches Relay API or `relay.observabilityEmbedUrl` override)
+
+Extend Backstage `backend.csp.frame-src` with your Grafana origin (local app-config allows `https:` for external Grafana).
+
 ## Related
 
-- [roadmap.md](roadmap.md) — Phase 2B.2 embedded Grafana view
+- [roadmap.md](roadmap.md) — Phase 2B.3 SLO summary in chat
 - [audit-log.md](audit-log.md) — tool invoke audit events

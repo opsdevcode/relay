@@ -26,6 +26,7 @@ from portal_assistant.store import DocumentStore
 from portal_assistant.ticket_intake import handoff_sandbox_request, resolve_ticket_intake_provider
 from portal_assistant.tools import load_registry
 from portal_assistant.user_context import UserContext, parse_user_context_from_headers
+from portal_assistant.views import resolve_grafana_embed_view
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +113,12 @@ app = FastAPI(title="Relay", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.web_origin, "http://127.0.0.1:3000"],
+    allow_origins=[
+        settings.web_origin,
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,6 +148,13 @@ def health() -> dict:
 @app.get("/platform-services")
 def platform_services() -> list[dict]:
     return load_registry()
+
+
+@app.get("/platform-services/{service_id}/grafana-embed")
+def platform_service_grafana_embed(service_id: str, service: str = "demo-api") -> dict:
+    if service_id != "observability-insight":
+        raise HTTPException(status_code=404, detail="Unknown platform service")
+    return resolve_grafana_embed_view(service_slug=service)
 
 
 @app.get("/actions/scaffold-link")

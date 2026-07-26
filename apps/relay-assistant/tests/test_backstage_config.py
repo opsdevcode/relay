@@ -88,6 +88,18 @@ def test_backstage_csp_allows_chat_embed_frame():
     assert "http://localhost:3000" in frame_src
 
 
+def test_backstage_relay_api_base_url():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    api_base = (data.get("relay") or {}).get("apiBaseUrl", "")
+    assert api_base == "http://localhost:8080"
+
+
+def test_backstage_csp_allows_https_grafana_frames():
+    data = yaml.safe_load(APP_CONFIG.read_text(encoding="utf-8"))
+    frame_src = ((data.get("backend") or {}).get("csp") or {}).get("frame-src") or []
+    assert "https:" in frame_src
+
+
 def test_seed_catalog_path_resolves_from_backend_cwd():
     """Mirrors Backstage file location resolution from packages/backend."""
     backend_cwd = REPO_ROOT / "apps" / "backstage" / "packages" / "backend"

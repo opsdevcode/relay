@@ -12,6 +12,14 @@
       <h1>Relay</h1>
       <p class="subtitle">Working model — local-first, cited answers, draft-and-route actions</p>
     </header>
+    <section id="observability-panel" class="observability-panel hidden" aria-label="Grafana observability">
+      <div class="observability-header">
+        <h2>Observability</h2>
+        <select id="observability-service" aria-label="Service"></select>
+      </div>
+      <p id="observability-hint" class="observability-hint"></p>
+      <iframe id="grafana-embed" class="grafana-embed hidden" title="Grafana dashboard"></iframe>
+    </section>
     <section id="prompts" class="prompts" aria-label="Suggested prompts"></section>
     <section id="chat" aria-live="polite"></section>
     <form id="composer">

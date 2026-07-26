@@ -35,6 +35,7 @@ export const SidebarContent = NavContentBlueprint.make({
           <SidebarGroup label="Menu" icon={<MenuIcon />}>
             {nav.take('page:catalog')}
             {nav.take('page:relay-chat/relay-chat')}
+            {nav.take('page:relay-chat/observability')}
             {nav.take('page:scaffolder')}
             <SidebarDivider />
             <SidebarScrollWrapper>

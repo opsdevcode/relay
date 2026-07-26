@@ -7,7 +7,6 @@ from typing import Any
 
 import yaml
 
-# Handlers implemented in portal_assistant.tools (registry routing must reference these).
 REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
     {
         "docs_search",
@@ -16,6 +15,10 @@ REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
         "service_health",
         "list_platform_services",
     }
+)
+
+KNOWN_VIEWS: frozenset[str] = frozenset(
+    {"techdocs", "scaffolder", "catalog", "grafana-embed"},
 )
 
 
@@ -92,6 +95,8 @@ class ObservabilityServiceEntry:
 @dataclass(frozen=True)
 class ObservabilityRegistry:
     grafana_path_template: str = "/d/{dashboard_uid}?var-service={service}"
+    grafana_embed_path_template: str = "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
+    default_embed_service: str = "demo-api"
     catalog: dict[str, ObservabilityServiceEntry] = field(default_factory=dict)
 
 
@@ -119,6 +124,11 @@ def _parse_observability(raw: dict[str, Any] | None) -> ObservabilityRegistry | 
     path_template = str(
         raw.get("grafana_path_template") or "/d/{dashboard_uid}?var-service={service}"
     ).strip()
+    embed_template = str(
+        raw.get("grafana_embed_path_template")
+        or "/d/{dashboard_uid}?orgId=1&var-service={service}&kiosk"
+    ).strip()
+    default_embed = str(raw.get("default_embed_service") or "demo-api").strip().lower()
     catalog: dict[str, ObservabilityServiceEntry] = {}
     catalog_raw = raw.get("catalog") or raw.get("services") or {}
     if isinstance(catalog_raw, dict):
@@ -134,7 +144,12 @@ def _parse_observability(raw: dict[str, Any] | None) -> ObservabilityRegistry | 
                 ).strip(),
                 slo_target=str(entry.get("slo_target") or entry.get("slo") or "").strip(),
             )
-    return ObservabilityRegistry(grafana_path_template=path_template, catalog=catalog)
+    return ObservabilityRegistry(
+        grafana_path_template=path_template,
+        grafana_embed_path_template=embed_template,
+        default_embed_service=default_embed or "demo-api",
+        catalog=catalog,
+    )
 
 
 def load_registry_config(path: Path | None = None) -> RegistryConfig:
@@ -258,6 +273,10 @@ def validate_registry_config(config: RegistryConfig) -> list[str]:
     for svc in config.services:
         if not isinstance(svc, dict):
             continue
+        for view in svc.get("views") or []:
+            token = str(view).strip()
+            if token and token not in KNOWN_VIEWS:
+                errors.append(f"service {svc.get('id')} declares unknown view: {token}")
         for tool in svc.get("tools") or []:
             service_tools.add(str(tool))
 
