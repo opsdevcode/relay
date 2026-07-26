@@ -14,6 +14,7 @@ class Chunk:
     visibility: str = "public"
     doc_owner: str = ""
     doc_updated: str = ""
+    allowed_groups: tuple[str, ...] = ()
 
 
 def slugify(text: str) -> str:

@@ -252,7 +252,7 @@ See `apps/backstage/README.md` for bootstrap notes.
 
 | ID | Work | Exit criteria |
 | --- | --- | --- |
-| 2D.1 | ABAC on retrieval | Filter chunks by visibility + user groups |
+| 2D.1 | ABAC on retrieval | Filter chunks by visibility + user groups — **done** (`retrieval_abac.py`, [retrieval-abac.md](../docs/retrieval-abac.md)) |
 | 2D.2 | Groundedness eval set | Fixed Q&A set run in CI; threshold gate on PRs |
 | 2D.3 | Injection defenses | Tool allow-list, output moderation, kill switch documented and tested |
 | 2D.4 | Citation-required mode | LLM answers rejected in eval if sources missing |
@@ -395,9 +395,9 @@ See also [CONTRIBUTING.md](../CONTRIBUTING.md) (roadmap sync on merge).
 
 Recommended order after Phase **1C** (catalog, chat embed, TechDocs, scaffolder):
 
-1. Phase **2D.1** ABAC on retrieval — filter chunks by visibility + user groups
+1. Phase **2D.2** Groundedness eval set — fixed Q&A set run in CI; threshold gate on PRs
 
-Phase **1** workstreams **1A–1D** and **2A–2B** are on `main`. Phase **2C** (catalog discovery, ownership, on-call) ships with this doc.
+Phase **1** workstreams **1A–1D** and **2A–2C** are on `main`. Phase **2D.1** (retrieval ABAC) ships with this doc.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
 Tool `kind: read|write` lives under `tools:` in `registry.yaml`.
 Corpus ops: [corpus-pipeline.md](corpus-pipeline.md).
