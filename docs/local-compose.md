@@ -2,6 +2,25 @@
 
 Relay supports **Make** (recommended in the README) and **plain Docker Compose** from the repo root. Both use the same [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) definition.
 
+## Local ports (Docker Compose)
+
+Published on the **host** (what you open in the browser or `curl`):
+
+| Host port | Service (compose) | URL / use |
+| --- | --- | --- |
+| **3000** | `web` | Relay chat UI — http://localhost:3000 |
+| **8080** | `relay-assistant` | Relay API — http://localhost:8080 (`/health`, `/chat`, `/platform-services`) |
+| **3001** | `backstage` (profile `backstage`) | Backstage **frontend** — http://localhost:3001 (catalog, Create, Relay Assistant, Observability, TechDocs) |
+| **7007** | `backstage` (profile `backstage`) | Backstage **backend** API — http://localhost:7007 (used by the UI; not the main entry URL) |
+
+**Not published** (container network only): Postgres `5432`, Redis `6379`.
+
+**Portal-only** (`docker compose up`): **3000** + **8080**.
+
+**Portal + Backstage** (`docker compose --profile backstage up`): **3000**, **8080**, **3001**, **7007**. Open **3001** for Backstage; the UI embeds Relay chat from **3000** and calls the Relay API on **8080** where configured.
+
+Host **`make backstage-dev`** uses the same **3001** / **7007** ports without running the Backstage container.
+
 ## One-time setup
 
 ```bash
@@ -16,6 +35,8 @@ Same stack as `make up`:
 docker compose up --build -d
 ```
 
+See [Local ports](#local-ports-docker-compose) — host **3000** (web) and **8080** (API).
+
 | URL | Service |
 | --- | --- |
 | http://localhost:3000 | Web chat UI |
@@ -29,7 +50,7 @@ docker compose down
 
 ## Portal + Backstage (one command)
 
-Adds **Backstage** on **:3001** (frontend) and **:7007** (backend). First start runs `yarn install` inside the container and can take several minutes.
+Adds **Backstage** on host **3001** (frontend) and **7007** (backend). The dev server binds **`0.0.0.0:3001`** inside the container so the published port works from macOS/Linux hosts. First start runs `yarn install` inside the container and can take several minutes.
 
 **Pick one:**
 
@@ -50,8 +71,10 @@ docker compose up --build -d   # portal + Backstage
 
 | URL | Service |
 | --- | --- |
-| http://localhost:3001 | Backstage (catalog, Create, Relay Assistant, TechDocs) |
+| http://localhost:3001 | Backstage UI (start here) |
 | http://localhost:7007 | Backstage backend API |
+| http://localhost:3000 | Relay chat (embedded in Backstage **Relay Assistant**) |
+| http://localhost:8080 | Relay API (Backstage **Observability** / platform-services) |
 
 Requirements:
 
