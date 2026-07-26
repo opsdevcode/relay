@@ -7,7 +7,7 @@ from pathlib import Path
 
 from portal_assistant.chunking import chunk_markdown
 from portal_assistant.config import settings
-from portal_assistant.frontmatter import metadata_str, parse_frontmatter
+from portal_assistant.frontmatter import metadata_group_list, metadata_str, parse_frontmatter
 from portal_assistant.store import DocumentStore
 from rag_ingestion.sources import (
     chunk_settings,
@@ -73,11 +73,14 @@ def ingest(
             doc_title = metadata_str(meta, "title") or path.stem.replace("-", " ").title()
             doc_owner = metadata_str(meta, "owner")
             doc_updated = metadata_str(meta, "updated")
+            doc_visibility = metadata_str(meta, "visibility") or visibility
+            allowed_groups = metadata_group_list(meta, "allowed_groups")
             chunks = chunk_markdown(body, rel, doc_title, size=size, overlap=overlap)
             for chunk in chunks:
-                chunk.visibility = visibility
+                chunk.visibility = doc_visibility
                 chunk.doc_owner = doc_owner
                 chunk.doc_updated = doc_updated
+                chunk.allowed_groups = allowed_groups
             total += doc_store.upsert_chunks(chunks)
             print(f"indexed {rel} ({len(chunks)} chunks)")
 

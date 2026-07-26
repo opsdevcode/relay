@@ -31,3 +31,19 @@ def metadata_str(meta: dict[str, Any], key: str) -> str:
     if value is None:
         return ""
     return str(value).strip()
+
+
+def metadata_group_list(meta: dict[str, Any], key: str) -> tuple[str, ...]:
+    value = meta.get(key)
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return tuple(g.strip() for g in value.split(",") if g.strip())
+    if isinstance(value, list):
+        out: list[str] = []
+        for item in value:
+            token = str(item).strip()
+            if token:
+                out.append(token)
+        return tuple(out)
+    return ()

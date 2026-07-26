@@ -146,6 +146,7 @@ def health() -> dict:
         "retrieval_mode": store.retrieval_mode(),
         "api_keys_required": False,
         "user_context_headers_enabled": settings.user_context_headers_enabled,
+        "retrieval_abac_enabled": settings.retrieval_abac_enabled,
         "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
         "ticket_intake_provider": resolve_ticket_intake_provider(settings),
         "observability_provider": resolve_observability_provider(settings),

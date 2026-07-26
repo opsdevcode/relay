@@ -9,19 +9,96 @@ from portal_assistant.chunking import Chunk
 from portal_assistant.config import settings
 from portal_assistant.embeddings import embed_text, to_vector_literal
 from portal_assistant.retrieval import reciprocal_rank_fusion
+from portal_assistant.retrieval_abac import AccessMode, resolve_access_mode
 from portal_assistant.user_context import UserContext
 
+_FTS_PUBLIC = """
+    SELECT source, title, content,
+           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+    FROM documents
+    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+    ORDER BY rank DESC
+    LIMIT %s
+    """
 
-def _access_filter_clause(user: UserContext | None) -> tuple[str, list]:
-    if user is None:
-        return "", []
-    principals = user.retrieval_principals()
-    if not principals:
-        return " AND visibility = 'public'", []
-    return (
-        " AND (visibility = 'public' OR doc_owner IS NULL OR doc_owner = ANY(%s))",
-        [principals],
-    )
+_FTS_ABAC_PUBLIC = """
+    SELECT source, title, content,
+           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+    FROM documents
+    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+      AND visibility = 'public'
+    ORDER BY rank DESC
+    LIMIT %s
+    """
+
+_FTS_ABAC_AUTH = """
+    SELECT source, title, content,
+           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+    FROM documents
+    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+      AND (visibility = 'public' OR visibility = 'internal')
+    ORDER BY rank DESC
+    LIMIT %s
+    """
+
+_FTS_ABAC_PRINCIPALS = """
+    SELECT source, title, content,
+           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
+    FROM documents
+    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
+      AND (
+        visibility = 'public'
+        OR visibility = 'internal'
+        OR (visibility = 'restricted' AND doc_owner = ANY(%s))
+        OR (visibility = 'restricted' AND allowed_groups && %s::text[])
+      )
+    ORDER BY rank DESC
+    LIMIT %s
+    """
+
+_VEC_PUBLIC = """
+    SELECT source, title, content,
+           (1 - (embedding <=> %s::vector)) AS vec_score
+    FROM documents
+    WHERE embedding IS NOT NULL
+    ORDER BY embedding <=> %s::vector
+    LIMIT %s
+    """
+
+_VEC_ABAC_PUBLIC = """
+    SELECT source, title, content,
+           (1 - (embedding <=> %s::vector)) AS vec_score
+    FROM documents
+    WHERE embedding IS NOT NULL
+      AND visibility = 'public'
+    ORDER BY embedding <=> %s::vector
+    LIMIT %s
+    """
+
+_VEC_ABAC_AUTH = """
+    SELECT source, title, content,
+           (1 - (embedding <=> %s::vector)) AS vec_score
+    FROM documents
+    WHERE embedding IS NOT NULL
+      AND (visibility = 'public' OR visibility = 'internal')
+    ORDER BY embedding <=> %s::vector
+    LIMIT %s
+    """
+
+_VEC_ABAC_PRINCIPALS = """
+    SELECT source, title, content,
+           (1 - (embedding <=> %s::vector)) AS vec_score
+    FROM documents
+    WHERE embedding IS NOT NULL
+      AND (
+        visibility = 'public'
+        OR visibility = 'internal'
+        OR (visibility = 'restricted' AND doc_owner = ANY(%s))
+        OR (visibility = 'restricted' AND allowed_groups && %s::text[])
+      )
+    ORDER BY embedding <=> %s::vector
+    LIMIT %s
+    """
 
 
 SCHEMA = """
@@ -44,7 +121,18 @@ CREATE INDEX IF NOT EXISTS documents_content_tsv_idx ON documents USING GIN (con
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS embedding vector(384);
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS doc_owner TEXT;
 ALTER TABLE documents ADD COLUMN IF NOT EXISTS doc_updated TEXT;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS allowed_groups TEXT[] NOT NULL DEFAULT '{}';
 """
+
+
+def _search_params(
+    mode: AccessMode, query_or_vector: Any, limit: int, access_params: list[Any]
+) -> list[Any]:
+    if mode is AccessMode.PRINCIPALS:
+        return [query_or_vector, query_or_vector, *access_params, limit]
+    if mode in (AccessMode.NONE, AccessMode.PUBLIC_ONLY, AccessMode.AUTHENTICATED):
+        return [query_or_vector, query_or_vector, limit]
+    return [query_or_vector, query_or_vector, limit]
 
 
 class DocumentStore:
@@ -68,17 +156,20 @@ class DocumentStore:
                 for chunk in chunks:
                     text = f"{chunk.title}\n{chunk.content}"
                     vector = to_vector_literal(embed_text(text, dimensions=dims))
+                    groups = list(chunk.allowed_groups) if chunk.allowed_groups else []
                     cur.execute(
                         """
                         INSERT INTO documents (
-                            source, title, content, visibility, embedding, doc_owner, doc_updated
+                            source, title, content, visibility, embedding,
+                            doc_owner, doc_updated, allowed_groups
                         )
-                        VALUES (%s, %s, %s, %s, %s::vector, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s::vector, %s, %s, %s)
                         ON CONFLICT (source, title, content) DO UPDATE SET
                             visibility = EXCLUDED.visibility,
                             embedding = EXCLUDED.embedding,
                             doc_owner = EXCLUDED.doc_owner,
-                            doc_updated = EXCLUDED.doc_updated
+                            doc_updated = EXCLUDED.doc_updated,
+                            allowed_groups = EXCLUDED.allowed_groups
                         """,
                         (
                             chunk.source,
@@ -88,6 +179,7 @@ class DocumentStore:
                             vector,
                             chunk.doc_owner or None,
                             chunk.doc_updated or None,
+                            groups,
                         ),
                     )
             conn.commit()
@@ -96,50 +188,17 @@ class DocumentStore:
     def _fts_search(
         self, query: str, limit: int, user: UserContext | None = None
     ) -> list[dict[str, Any]]:
-        principals = user.retrieval_principals() if user else []
+        mode, access_params = resolve_access_mode(user)
+        sql_by_mode = {
+            AccessMode.NONE: _FTS_PUBLIC,
+            AccessMode.PUBLIC_ONLY: _FTS_ABAC_PUBLIC,
+            AccessMode.AUTHENTICATED: _FTS_ABAC_AUTH,
+            AccessMode.PRINCIPALS: _FTS_ABAC_PRINCIPALS,
+        }
+        sql = sql_by_mode[mode]
+        params = _search_params(mode, query, limit, access_params)
         with self.connect() as conn:
-            if user is None:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
-                    FROM documents
-                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
-                    ORDER BY rank DESC
-                    LIMIT %s
-                    """,
-                    (query, query, limit),
-                ).fetchall()
-            elif not principals:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
-                    FROM documents
-                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
-                      AND visibility = 'public'
-                    ORDER BY rank DESC
-                    LIMIT %s
-                    """,
-                    (query, query, limit),
-                ).fetchall()
-            else:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           ts_rank(content_tsv, websearch_to_tsquery('english', %s)) AS rank
-                    FROM documents
-                    WHERE content_tsv @@ websearch_to_tsquery('english', %s)
-                      AND (
-                        visibility = 'public'
-                        OR doc_owner IS NULL
-                        OR doc_owner = ANY(%s)
-                      )
-                    ORDER BY rank DESC
-                    LIMIT %s
-                    """,
-                    (query, query, principals, limit),
-                ).fetchall()
+            rows = conn.execute(sql, params).fetchall()
         return cast(list[dict[str, Any]], list(rows))
 
     def _vector_search(
@@ -147,50 +206,20 @@ class DocumentStore:
     ) -> list[dict[str, Any]]:
         dims = settings.embedding_dimensions
         vector = to_vector_literal(embed_text(query, dimensions=dims))
-        principals = user.retrieval_principals() if user else []
+        mode, access_params = resolve_access_mode(user)
+        sql_by_mode = {
+            AccessMode.NONE: _VEC_PUBLIC,
+            AccessMode.PUBLIC_ONLY: _VEC_ABAC_PUBLIC,
+            AccessMode.AUTHENTICATED: _VEC_ABAC_AUTH,
+            AccessMode.PRINCIPALS: _VEC_ABAC_PRINCIPALS,
+        }
+        sql = sql_by_mode[mode]
+        if mode is AccessMode.PRINCIPALS:
+            params: list[Any] = [vector, *access_params, vector, limit]
+        else:
+            params = [vector, vector, limit]
         with self.connect() as conn:
-            if user is None:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           (1 - (embedding <=> %s::vector)) AS vec_score
-                    FROM documents
-                    WHERE embedding IS NOT NULL
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT %s
-                    """,
-                    (vector, vector, limit),
-                ).fetchall()
-            elif not principals:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           (1 - (embedding <=> %s::vector)) AS vec_score
-                    FROM documents
-                    WHERE embedding IS NOT NULL
-                      AND visibility = 'public'
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT %s
-                    """,
-                    (vector, vector, limit),
-                ).fetchall()
-            else:
-                rows = conn.execute(
-                    """
-                    SELECT source, title, content,
-                           (1 - (embedding <=> %s::vector)) AS vec_score
-                    FROM documents
-                    WHERE embedding IS NOT NULL
-                      AND (
-                        visibility = 'public'
-                        OR doc_owner IS NULL
-                        OR doc_owner = ANY(%s)
-                      )
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT %s
-                    """,
-                    (vector, principals, vector, limit),
-                ).fetchall()
+            rows = conn.execute(sql, params).fetchall()
         return cast(list[dict[str, Any]], list(rows))
 
     def _embeddings_available(self) -> bool:

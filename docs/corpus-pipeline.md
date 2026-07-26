@@ -31,7 +31,9 @@ and uses:
 | Field | Purpose |
 | --- | --- |
 | `title` | Document title (default: filename stem) |
-| `owner` | Stored on each chunk row (`doc_owner`) for future ABAC |
+| `owner` | Stored on each chunk row (`doc_owner`) for ABAC |
+| `visibility` | Per-document visibility (`public`, `internal`, `restricted`) — overrides source default |
+| `allowed_groups` | IdP groups allowed to read `restricted` chunks (PostgreSQL array) |
 | `updated` | Stored as `doc_updated` (ISO date string recommended) |
 
 Multi-chunk docs get section-aware titles when a chunk begins with a `##`

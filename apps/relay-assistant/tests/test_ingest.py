@@ -122,8 +122,37 @@ Every resource needs an environment tag.
     assert chunk.title == "Tagging Policy — Required tags"
     assert chunk.doc_owner == "platform-team"
     assert chunk.doc_updated == "2026-02-01"
+    assert chunk.allowed_groups == ()
     assert "environment tag" in chunk.content
     assert "---" not in chunk.content
+
+
+def test_ingest_frontmatter_visibility_and_allowed_groups(tmp_path: Path):
+    corpus = tmp_path / "docs"
+    corpus.mkdir()
+    (corpus / "secret.md").write_text(
+        """---
+title: Restricted runbook
+owner: platform-team
+visibility: restricted
+allowed_groups:
+  - relay-platform-admins
+---
+# Secret
+
+Do not share.
+"""
+    )
+    cfg = _write_sources(
+        tmp_path,
+        [{"name": "docs", "path": str(corpus), "glob": "**/*.md", "visibility": "public"}],
+    )
+    store = RecordingStore()
+    ingest(cfg, store=store, knowledge_path=str(tmp_path))  # type: ignore[arg-type]
+    chunk = store.chunks[0]
+    assert chunk.visibility == "restricted"
+    assert chunk.allowed_groups == ("relay-platform-admins",)
+    assert "Do not share" in chunk.content
 
 
 def test_ingest_full_clears_stale_chunks(tmp_path: Path):

@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     github_repo: str = "opsdevcode/relay"
     github_api_token: str = ""
     # When true, trust X-Auth-Request-* from oauth2-proxy behind ingress. Off locally.
+    # When true, filter retrieval by visibility / groups even without ingress user headers.
+    retrieval_abac_enabled: bool = False
     user_context_headers_enabled: bool = False
     # When true, POST /actions/confirm requires entitled IdP groups (see registry tools).
     confirm_action_authorization_enabled: bool = False

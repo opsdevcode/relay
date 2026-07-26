@@ -48,7 +48,13 @@ When **`USER_CONTEXT_HEADERS_ENABLED=true`**, `/chat` reads oauth2-proxy headers
 | `X-Auth-Request-Email` | Email principal for `doc_owner` match |
 | `X-Auth-Request-Groups` | Comma-separated groups |
 
-Hybrid/FTS retrieval then filters chunks to **`visibility = public`**, **`doc_owner` null**, or **`doc_owner`** matching subject, email, or a group. Local compose keeps the flag **off** so behavior is unchanged without ingress.
+Hybrid/FTS retrieval filters chunks by visibility and group membership when **`USER_CONTEXT_HEADERS_ENABLED=true`** and/or **`RETRIEVAL_ABAC_ENABLED=true`** (Phase 2D.1 — [retrieval-abac.md](retrieval-abac.md)):
+
+- **`public`** — always
+- **`internal`** — authenticated subject/email
+- **`restricted`** — `doc_owner` or `allowed_groups` matches `X-Auth-Request-User`, email, or groups
+
+Local compose keeps both flags **off** so dev search sees the full corpus without ingress.
 
 Set in K8s via ConfigMap `relay-assistant-config` (see base manifest).
 
