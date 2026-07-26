@@ -16,12 +16,14 @@ services:
     tools:
       - docs_search
       - catalog_ownership
+      - on_call_lookup
     views:
       - techdocs
     prompts:
       - "What are the required resource tags?"
       - "How does the golden path GitOps flow work?"
       - "Who owns demo-api?"
+      - "Who is on call for demo-api?"
 
   - id: golden-path-scaffold
     name: Golden Path — K8s Service
@@ -80,6 +82,10 @@ routing:
     patterns:
       - "(?i)\\b(health|slo|alert|how'?s .+ doing)\\b"
 
+  - tool: on_call_lookup
+    patterns:
+      - "(?i)\\b(on[- ]?call|who(?:'s| is) on call|paging for|page for)\\b"
+
   - tool: catalog_ownership
     patterns:
       - "(?i)\\b(who owns|ownership of|owner of|which team owns)\\b"
@@ -95,6 +101,8 @@ tools:
   service_health:
     kind: read
   catalog_ownership:
+    kind: read
+  on_call_lookup:
     kind: read
   scaffold_service:
     kind: write
@@ -122,3 +130,11 @@ observability:
     payments-api:
       dashboard_uid: payments-overview
       slo_target: "99.95%"
+
+# Owner team → paging schedule (Phase 2C.3). Override with catalog annotations.
+on_call:
+  url_template: "https://example.pagerduty.com/schedules/{schedule_id}"
+  teams:
+    platform-team:
+      schedule_id: demo-platform-schedule
+      pagerduty_escalation_policy_id: PLACEHOLDER

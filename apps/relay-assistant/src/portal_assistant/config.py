@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     prometheus_api_token: str = ""
     prometheus_alerts_query_template: str = ""
     prometheus_burn_rate_query_template: str = ""
+    on_call_provider: str = "deeplink"
+    on_call_url_template: str = ""
+    pagerduty_api_token: str = ""
+    pagerduty_api_url: str = "https://api.pagerduty.com"
+    pagerduty_base_url: str = ""
+    opsgenie_api_token: str = ""
     audit_log_enabled: bool = True
     audit_query_secret: str = ""
 

@@ -10,6 +10,7 @@ from portal_assistant.catalog_ownership import (
 )
 from portal_assistant.llm import synthesize
 from portal_assistant.observability import fetch_service_health, format_service_health_answer
+from portal_assistant.on_call import extract_on_call_target, fetch_on_call, format_on_call_answer
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
 from portal_assistant.scaffold import build_workflow_dispatch
 from portal_assistant.store import DocumentStore
@@ -121,6 +122,15 @@ async def dispatch_tool(
         match = resolve_ownership(target)
         return {
             "answer": format_ownership_answer(match, query=target),
+            "citations": [],
+            "draft": None,
+        }
+
+    if tool_id == "on_call_lookup":
+        target = extract_on_call_target(message)
+        result = await fetch_on_call(target)
+        return {
+            "answer": format_on_call_answer(result),
             "citations": [],
             "draft": None,
         }

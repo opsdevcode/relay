@@ -15,6 +15,7 @@ REGISTERED_TOOL_IDS: frozenset[str] = frozenset(
         "service_health",
         "list_platform_services",
         "catalog_ownership",
+        "on_call_lookup",
     }
 )
 
@@ -35,6 +36,7 @@ DEFAULT_TOOL_DEFINITIONS: dict[str, ToolDefinition] = {
     "list_platform_services": ToolDefinition(kind="read"),
     "service_health": ToolDefinition(kind="read"),
     "catalog_ownership": ToolDefinition(kind="read"),
+    "on_call_lookup": ToolDefinition(kind="read"),
     "scaffold_service": ToolDefinition(
         kind="write",
         requires_confirmation=True,
@@ -105,11 +107,25 @@ class ObservabilityRegistry:
 
 
 @dataclass(frozen=True)
+class OnCallTeamEntry:
+    schedule_id: str = ""
+    pagerduty_escalation_policy_id: str = ""
+    opsgenie_schedule_id: str = ""
+
+
+@dataclass(frozen=True)
+class OnCallRegistry:
+    url_template: str = ""
+    teams: dict[str, OnCallTeamEntry] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class RegistryConfig:
     services: list[dict[str, Any]]
     routing: list[RoutingRule]
     tools: dict[str, ToolDefinition]
     observability: ObservabilityRegistry | None = None
+    on_call: OnCallRegistry | None = None
 
     def tool_definition(self, tool_id: str) -> ToolDefinition:
         return self.tools.get(tool_id, ToolDefinition(kind="read"))
@@ -162,6 +178,33 @@ def _parse_observability(raw: dict[str, Any] | None) -> ObservabilityRegistry | 
     )
 
 
+def _parse_on_call(raw: dict[str, Any] | None) -> OnCallRegistry | None:
+    if not raw or not isinstance(raw, dict):
+        return None
+    url_template = str(raw.get("url_template") or "").strip()
+    teams: dict[str, OnCallTeamEntry] = {}
+    teams_raw = raw.get("teams") or {}
+    if isinstance(teams_raw, dict):
+        for key, entry in teams_raw.items():
+            if not isinstance(entry, dict):
+                continue
+            slug = str(key).strip().lower()
+            if not slug:
+                continue
+            teams[slug] = OnCallTeamEntry(
+                schedule_id=str(entry.get("schedule_id") or "").strip(),
+                pagerduty_escalation_policy_id=str(
+                    entry.get("pagerduty_escalation_policy_id")
+                    or entry.get("escalation_policy_id")
+                    or ""
+                ).strip(),
+                opsgenie_schedule_id=str(entry.get("opsgenie_schedule_id") or "").strip(),
+            )
+    if not url_template and not teams:
+        return None
+    return OnCallRegistry(url_template=url_template, teams=teams)
+
+
 def load_registry_config(path: Path | None = None) -> RegistryConfig:
     reg_path = path or registry_path()
     if not reg_path.exists():
@@ -205,12 +248,14 @@ def load_registry_config(path: Path | None = None) -> RegistryConfig:
     tools_raw = raw.get("tools")
     tools = _parse_tools(tools_raw if isinstance(tools_raw, dict) else None)
     observability = _parse_observability(raw.get("observability"))
+    on_call = _parse_on_call(raw.get("on_call"))
 
     return RegistryConfig(
         services=services,
         routing=routing,
         tools=tools,
         observability=observability,
+        on_call=on_call,
     )
 
 
