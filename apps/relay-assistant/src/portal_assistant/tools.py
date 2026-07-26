@@ -11,6 +11,7 @@ from portal_assistant.catalog_ownership import (
 from portal_assistant.llm import synthesize
 from portal_assistant.observability import fetch_service_health, format_service_health_answer
 from portal_assistant.on_call import extract_on_call_target, fetch_on_call, format_on_call_answer
+from portal_assistant.registry import REGISTERED_TOOL_IDS
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
 from portal_assistant.scaffold import build_workflow_dispatch
 from portal_assistant.store import DocumentStore
@@ -96,6 +97,13 @@ async def dispatch_tool(
     audit: AuditLogStore | None = None,
     thread_id: str | None = None,
 ) -> dict:
+    if tool_id not in REGISTERED_TOOL_IDS:
+        return {
+            "answer": f"Tool '{tool_id}' is not allow-listed for this assistant.",
+            "citations": [],
+            "draft": None,
+        }
+
     if tool_id == "list_platform_services":
         return {"answer": list_platform_services(), "citations": [], "draft": None}
 

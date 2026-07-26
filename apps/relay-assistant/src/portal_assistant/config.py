@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     pagerduty_api_url: str = "https://api.pagerduty.com"
     pagerduty_base_url: str = ""
     opsgenie_api_token: str = ""
+    # Phase 2D.3 — block /chat and confirm when true (operator kill switch).
+    chat_kill_switch: bool = False
+    injection_defense_enabled: bool = True
+    output_moderation_enabled: bool = True
     audit_log_enabled: bool = True
     audit_query_secret: str = ""
 

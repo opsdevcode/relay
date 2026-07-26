@@ -19,6 +19,7 @@ from portal_assistant.audit_log import (
     AuditLogStore,
 )
 from portal_assistant.config import settings
+from portal_assistant.injection_defenses import is_chat_enabled
 from portal_assistant.llm_providers import resolve_synthesis_provider
 from portal_assistant.observability import (
     observability_metrics_configured,
@@ -147,6 +148,9 @@ def health() -> dict:
         "api_keys_required": False,
         "user_context_headers_enabled": settings.user_context_headers_enabled,
         "retrieval_abac_enabled": settings.retrieval_abac_enabled,
+        "chat_enabled": is_chat_enabled(settings),
+        "injection_defense_enabled": settings.injection_defense_enabled,
+        "output_moderation_enabled": settings.output_moderation_enabled,
         "confirm_action_authorization_enabled": settings.confirm_action_authorization_enabled,
         "ticket_intake_provider": resolve_ticket_intake_provider(settings),
         "observability_provider": resolve_observability_provider(settings),
@@ -185,6 +189,8 @@ async def chat(
     x_auth_request_email: str | None = Header(default=None, alias="X-Auth-Request-Email"),
     x_auth_request_groups: str | None = Header(default=None, alias="X-Auth-Request-Groups"),
 ) -> ChatResponse:
+    if not is_chat_enabled(settings):
+        raise HTTPException(status_code=503, detail="Chat disabled (CHAT_KILL_SWITCH)")
     user = _resolve_user_context(
         x_auth_request_user,
         x_auth_request_email,
@@ -208,6 +214,8 @@ async def confirm_action(
     x_auth_request_email: str | None = Header(default=None, alias="X-Auth-Request-Email"),
     x_auth_request_groups: str | None = Header(default=None, alias="X-Auth-Request-Groups"),
 ) -> dict:
+    if not is_chat_enabled(settings):
+        raise HTTPException(status_code=503, detail="Confirm disabled (CHAT_KILL_SWITCH)")
     draft = body.draft or {}
     action = draft.get("action")
     if not action:
