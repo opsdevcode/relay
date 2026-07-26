@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from portal_assistant.config import settings
+from portal_assistant.risk_tiers import draft_risk_metadata, scaffold_pr_body_markdown
 
 WORKFLOW_FILE = "scaffold-k8s-service.yml"
 
@@ -51,11 +52,33 @@ def confirm_scaffold_draft(draft: dict) -> dict:
     inputs = draft.get("inputs") or {}
     service_name = draft.get("service_name") or inputs.get("service_name") or "demo-service"
     description = draft.get("description") or inputs.get("description") or ""
+    owner = str(inputs.get("owner") or draft.get("owner") or "platform-team")
     payload = build_workflow_dispatch(service_name, description)
+    meta = draft_risk_metadata(
+        change_kind="scaffold_service",
+        target_paths=[f"examples/services/{service_name}/"],
+    )
+    risk_fields = {
+        key: str(draft.get(key) or meta[key])
+        for key in (
+            "risk_tier",
+            "risk_tier_label",
+            "review_requirements",
+            "codeowners",
+            "change_paths",
+        )
+    }
     return {
         "status": "workflow_dispatch",
         "message": payload["instructions"],
         "workflow_url": payload["workflow_url"],
         "workflow_name": payload["workflow_name"],
-        "inputs": payload["inputs"],
+        "inputs": {**payload["inputs"], "owner": owner},
+        **risk_fields,
+        "pr_body_preview": scaffold_pr_body_markdown(
+            service_name=service_name,
+            description=description or payload["inputs"]["description"],
+            github_org=str(inputs.get("github_org") or settings.github_org),
+            owner=owner,
+        ),
     }

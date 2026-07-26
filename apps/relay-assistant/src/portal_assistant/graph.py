@@ -20,6 +20,11 @@ WRITE_DRAFT_CLIENT_KEYS: frozenset[str] = frozenset(
         "inputs",
         "purpose",
         "budget_usd_monthly",
+        "risk_tier",
+        "risk_tier_label",
+        "review_requirements",
+        "codeowners",
+        "change_paths",
     }
 )
 

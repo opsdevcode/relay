@@ -4,6 +4,7 @@ import re
 
 from portal_assistant.llm import synthesize
 from portal_assistant.registry import load_registry_config
+from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
 from portal_assistant.scaffold import build_workflow_dispatch
 from portal_assistant.store import DocumentStore
 from portal_assistant.user_context import UserContext
@@ -55,22 +56,33 @@ def service_health(service_name: str) -> dict:
 
 def draft_scaffold(service_name: str, description: str = "") -> dict:
     payload = build_workflow_dispatch(service_name, description)
+    name = payload["inputs"]["service_name"]
+    meta = draft_risk_metadata(
+        change_kind="scaffold_service",
+        target_paths=[f"{SCAFFOLD_SERVICE_PATH_PREFIX}{name}/"],
+    )
     return {
         **payload,
+        **meta,
         "status": "draft",
         "requires_confirmation": True,
     }
 
 
 def draft_sandbox_request(purpose: str, budget: str = "500") -> dict:
+    meta = draft_risk_metadata(
+        change_kind="request_sandbox",
+        target_paths=[".github/ISSUE_TEMPLATE/sandbox-request.md"],
+    )
     return {
         "action": "request_sandbox",
+        **meta,
         "status": "draft",
         "purpose": purpose,
         "budget_usd_monthly": budget,
         "message": (
             f"Draft: sandbox request for '{purpose}' (~${budget}/mo). "
-            "Confirm to file a GitHub Issue (ticket-system intake in production)."
+            f"Confirm to file intake (tier **{meta['risk_tier']}**: {meta['review_requirements']})."
         ),
         "requires_confirmation": True,
     }

@@ -6,4 +6,5 @@
 /.github/workflows/     @erskaggs
 /scripts/               @erskaggs
 /deploy/                @erskaggs
+/examples/services/     @erskaggs
 /docs/security-governance.md @erskaggs
