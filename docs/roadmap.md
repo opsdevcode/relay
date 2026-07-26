@@ -196,7 +196,7 @@ Timelines are indicative for a small platform squad; adjust for design-partner a
 | --- | --- | --- |
 | 1C.1 | Minimal Backstage app | Catalog imports `catalog/entities/` — **done** (`apps/backstage`, `app-config.yaml` file location) |
 | 1C.2 | Embedded chat | iframe or plugin pointing at portal web UI / API — **done** (`/relay`, `relay.chatEmbedUrl`) |
-| 1C.3 | TechDocs | At least one entity with published docs from repo markdown |
+| 1C.3 | TechDocs | At least one entity with published docs from repo markdown — **done** (Relay → `docs/techdocs/relay`) |
 | 1C.4 | Scaffolder registration | Golden-path template registered; aligns with Actions workflow |
 
 See `apps/backstage/README.md` for bootstrap notes.
@@ -389,7 +389,7 @@ Current registered services (working model):
 
 Recommended order after Phase **1B.3**:
 
-1. Phase **1C.3** TechDocs — at least one entity with published docs from repo markdown
+1. Phase **1C.4** Scaffolder registration — golden-path template registered; aligns with Actions workflow
 
 Phase **1A.***, **1B.1–1B.3**, and **1C.1** are on `main`.
 Chat flow: refine → route → execute → write guard (`portal_assistant.graph`).
