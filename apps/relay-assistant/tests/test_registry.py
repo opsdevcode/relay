@@ -14,7 +14,7 @@ from portal_assistant.registry import (
 def test_load_registry_config_has_services_and_routing():
     config = load_registry_config()
     assert len(config.services) >= 4
-    assert len(config.routing) >= 5
+    assert len(config.routing) >= 6
     assert validate_registry_config(config) == []
     assert config.observability is not None
     assert "demo-api" in (config.observability.catalog or {})
@@ -29,6 +29,7 @@ def test_load_registry_config_has_services_and_routing():
         ("Create a new service called demo-api", "scaffold_service"),
         ("I need a sandbox for a POC", "request_sandbox"),
         ("How's payments-api doing on SLO?", "service_health"),
+        ("Who owns demo-api?", "catalog_ownership"),
         ("What are the required resource tags?", "docs_search"),
     ],
 )

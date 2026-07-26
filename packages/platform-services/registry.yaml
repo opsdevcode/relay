@@ -15,11 +15,13 @@ services:
         - corpus-docs
     tools:
       - docs_search
+      - catalog_ownership
     views:
       - techdocs
     prompts:
       - "What are the required resource tags?"
       - "How does the golden path GitOps flow work?"
+      - "Who owns demo-api?"
 
   - id: golden-path-scaffold
     name: Golden Path — K8s Service
@@ -78,6 +80,10 @@ routing:
     patterns:
       - "(?i)\\b(health|slo|alert|how'?s .+ doing)\\b"
 
+  - tool: catalog_ownership
+    patterns:
+      - "(?i)\\b(who owns|ownership of|owner of|which team owns)\\b"
+
   - tool: docs_search
     default: true
 
@@ -87,6 +93,8 @@ tools:
   list_platform_services:
     kind: read
   service_health:
+    kind: read
+  catalog_ownership:
     kind: read
   scaffold_service:
     kind: write

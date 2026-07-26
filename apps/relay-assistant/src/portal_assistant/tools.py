@@ -3,6 +3,11 @@ from __future__ import annotations
 import re
 
 from portal_assistant.audit_log import EVENT_RETRIEVAL, AuditActor, AuditLogStore
+from portal_assistant.catalog_ownership import (
+    extract_ownership_target,
+    format_ownership_answer,
+    resolve_ownership,
+)
 from portal_assistant.llm import synthesize
 from portal_assistant.observability import fetch_service_health, format_service_health_answer
 from portal_assistant.risk_tiers import SCAFFOLD_SERVICE_PATH_PREFIX, draft_risk_metadata
@@ -107,6 +112,15 @@ async def dispatch_tool(
         health = await fetch_service_health(name)
         return {
             "answer": format_service_health_answer(health),
+            "citations": [],
+            "draft": None,
+        }
+
+    if tool_id == "catalog_ownership":
+        target = extract_ownership_target(message)
+        match = resolve_ownership(target)
+        return {
+            "answer": format_ownership_answer(match, query=target),
             "citations": [],
             "draft": None,
         }
